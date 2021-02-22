@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : guidap_mysql: 3306
--- Généré le :  lun. 22 fév. 2021 à 12:30
+-- Généré le :  lun. 22 fév. 2021 à 14:18
 -- Version du serveur :  5.7.33
 -- Version de PHP :  7.2.2
 
@@ -30,7 +30,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `activities` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8 NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `categories_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -42,15 +42,8 @@ CREATE TABLE `activities` (
 
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8 NOT NULL
+  `name` varchar(255) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Déchargement des données de la table `categories`
---
-
-INSERT INTO `categories` (`id`, `name`) VALUES
-(1, 'test');
 
 -- --------------------------------------------------------
 
@@ -60,13 +53,10 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 
 CREATE TABLE `leisurecentre` (
   `id` int(11) NOT NULL,
-  `centreName` varchar(100) CHARACTER SET utf8 DEFAULT NULL,
-  `description` tinytext CHARACTER SET utf8,
-  `website` varchar(255) DEFAULT NULL,
-  `address` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
-  `long` decimal(9,6) DEFAULT NULL,
-  `lat` decimal(9,0) DEFAULT NULL,
-  `is_archived` tinyint(1) NOT NULL DEFAULT '0'
+  `centreName` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `description` text CHARACTER SET utf8mb4,
+  `address` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `website` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -88,9 +78,8 @@ CREATE TABLE `leisurecentre_categories` (
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `email` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `password` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `token` varchar(255) CHARACTER SET utf8 NOT NULL
+  `email` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -144,7 +133,7 @@ ALTER TABLE `activities`
 -- AUTO_INCREMENT pour la table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `leisurecentre`

@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-
+const apiRouter = require('./src/routes/api.routes');
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
          excellent day see you soon </h1> `);
 });
 
-
+app.use("/api/leisurecentres", apiRouter);
 
 
 app.listen(port, function () {
