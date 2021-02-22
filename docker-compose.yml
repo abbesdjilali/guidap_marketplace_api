@@ -1,0 +1,49 @@
+version: "3.2"
+services:
+  app:
+    build: ./app
+    image: docker.guidap_marketplace_api
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - ./app/:/app/
+    ports:
+      - "3000:3000"
+    environment:
+      - MYSQL_ROOT_PASSWORD=guidap_root
+      - MYSQL_USER=guidap_user
+      - MYSQL_PASSWORD=guidap_pass 
+      - MYSQL_DATABASE=guidap_marketplace_db
+    container_name: docker.guidap_app
+
+  mysql:
+    image: mysql:5.7
+    networks:
+      - backend
+    environment:
+      - MYSQL_ROOT_PASSWORD=guidap_root
+      - MYSQL_USER=guidap_user
+      - MYSQL_PASSWORD=guidap_pass 
+      - MYSQL_DATABASE=guidap_marketplace_db
+    volumes: 
+      - ./db:/docker-entrypoint-initdb.d/:ro
+    container_name: guidap_mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.7
+    depends_on:
+      - mysql
+    networks:
+      - backend
+    ports:
+      - "3001:80"
+    environment:
+      - PMA_HOST=guidap_mysql
+      - PMA_PORT= 3306
+    volumes: 
+      - /sessions
+    container_name: guidap_phpmyadmin
+networks:
+  frontend:
+  backend:
