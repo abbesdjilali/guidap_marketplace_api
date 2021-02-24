@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : guidap_mysql: 3306
--- Généré le :  lun. 22 fév. 2021 à 14:18
+-- Généré le :  mar. 23 fév. 2021 à 13:22
 -- Version du serveur :  5.7.33
 -- Version de PHP :  7.2.2
 
@@ -25,18 +25,6 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Structure de la table `activities`
---
-
-CREATE TABLE `activities` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
-  `categories_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `categories`
 --
 
@@ -44,6 +32,14 @@ CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Déchargement des données de la table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`) VALUES
+(5, 'kitesurf'),
+(4, 'plongé');
 
 -- --------------------------------------------------------
 
@@ -53,11 +49,16 @@ CREATE TABLE `categories` (
 
 CREATE TABLE `leisurecentre` (
   `id` int(11) NOT NULL,
-  `centreName` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `description` text CHARACTER SET utf8mb4,
-  `address` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
-  `website` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `centreName` varchar(255) NOT NULL,
+  `description` text,
+  `website` varchar(255) DEFAULT NULL,
+  `addressName` varchar(255) NOT NULL,
+  `cite` varchar(255) NOT NULL,
+  `zipCode` int(11) NOT NULL,
+  `country` varchar(255) NOT NULL,
+  `lat` decimal(9,6) NOT NULL,
+  `lon` decimal(9,6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -87,17 +88,11 @@ CREATE TABLE `users` (
 --
 
 --
--- Index pour la table `activities`
---
-ALTER TABLE `activities`
-  ADD PRIMARY KEY (`id`,`categories_id`),
-  ADD KEY `fk_activities_categories1_idx` (`categories_id`);
-
---
 -- Index pour la table `categories`
 --
 ALTER TABLE `categories`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_categorie_name` (`name`);
 
 --
 -- Index pour la table `leisurecentre`
@@ -124,22 +119,16 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT pour la table `activities`
---
-ALTER TABLE `activities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT pour la table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT pour la table `leisurecentre`
 --
 ALTER TABLE `leisurecentre`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `users`
@@ -150,12 +139,6 @@ ALTER TABLE `users`
 --
 -- Contraintes pour les tables déchargées
 --
-
---
--- Contraintes pour la table `activities`
---
-ALTER TABLE `activities`
-  ADD CONSTRAINT `fk_activities_categories1` FOREIGN KEY (`categories_id`) REFERENCES `categories` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Contraintes pour la table `leisurecentre_categories`

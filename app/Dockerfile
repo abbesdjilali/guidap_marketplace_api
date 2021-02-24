@@ -1,5 +1,5 @@
 FROM node:latest
-EXPOSE 8005
+EXPOSE 3000
 WORKDIR /app
 COPY package.json /app/
 COPY package-lock.json /app/

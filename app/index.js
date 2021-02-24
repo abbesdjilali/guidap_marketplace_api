@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
-const apiRouter = require('./src/routes/api.routes');
-
+const apiRouter = require('./src/routes/leisurecentre.routes');
+// Load variable env
+require('dotenv').config();
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
     extended: false
@@ -18,7 +19,7 @@ app.get('/', (req, res) => {
          excellent day see you soon </h1> `);
 });
 
-app.use("/api/leisurecentres", apiRouter);
+app.use("/api/leisurecentre", apiRouter);
 
 
 app.listen(port, function () {
