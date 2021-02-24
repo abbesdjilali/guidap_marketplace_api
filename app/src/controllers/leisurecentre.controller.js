@@ -3,10 +3,11 @@ const {
     getLeisureCentreByCategorie,
     createLeisureCentre,
     updateLeisureCentreService,
-    deleteLeisureCentre,
+    deleteLeisureCentreService,
     insertOrUpdateLeisureCentreIfExists,
     insertIntoLeisurecentreCategories,
-    getOneLeisureCentre
+    getOneLeisureCentre,
+    geocodeAddressIfAddressChange
 } = require('../services/leisurecentre.services');
 const {
     LeisureCentreSchema,
@@ -15,7 +16,8 @@ const {
 const {
     geocodeAddress
 } = require('../services/geocoding.services');
-const {insertCategories} = require('../services/categorie.services')
+const {insertCategories} = require('../services/categorie.services');
+const { number } = require('joi');
 
 // get all leisure centre list
 exports.getLeisuresCentresList = (req, res) => {
@@ -93,37 +95,41 @@ exports.updateLeisureCentre = async(req, res) => {
 
     //If update addresName,zipCode,cite or country
     //Geocoding address to get latitude and longitude
-    let leisureCentre = await getOneLeisureCentre(id);
-    console.log("leisure centre :",leisureCentre);
-    const {addressName,zipCode,cite,country} = requestBody;
-     if(addressName || zipCode || cite || country){
-         if (!addressName) requestBody.addressName = leisureCentre.addressName;
-         if (!zipCode) requestBody.zipCode = leisureCentre.zipCode;
-         if (!cite) requestBody.cite = leisureCentre.cite;
-         if (!country) requestBody.country = leisureCentre.country;
+    const { addressName, zipCode , cite, country } = requestBody;
+    if (addressName || zipCode || cite || country) {
         try {
-            let coordinates = await geocodeAddress(requestBody);
-            requestBody['lon'] = coordinates[0];
-            requestBody['lat'] = coordinates[1];
-            console.log("requestBody after validation :", requestBody);
-
+            requestBody = await geocodeAddressIfAddressChange(requestBody, id);
         } catch (error) {
-            return res.status(400).send("Error to geocoding address :", error);
+            res.status(400).send('Error to geocode address', error);
         }
     }
+    
+    //Update leisure centre 
     try {
-        let results = await updateLeisureCentreService(requestBody, id);
-        console.log(results)
+        await updateLeisureCentreService(requestBody, id);
         res.json({
             status: 200,
             message: 'Leisure centre was updated Successfully',
         })
     } catch (error) {
-        res.status(400).send(`Error to update leisurecentre with id ${id}`, err);
+        res.status(400).send(`Error to update leisurecentre with id ${id}`, error);
     } 
     
 }
 
 // delete leisure centre 
-exports.deleteLeisureCentre = (req, res, next) => {
+exports.deleteLeisureCentre = async(req, res) => {
+    const id = req.params.id
+    if(!id)
+        res.status(400).send('You must enter a valid ID in to url')
+    try {
+        let result = await deleteLeisureCentreService(id);
+        console.log(result);
+       res.json({
+           status: 200,
+           message: 'Leisure centre was deleted Successfully',
+       })
+    } catch (error) {
+        res.status(400).send(error)
+    }
 }

@@ -7,6 +7,9 @@ const {
     updateLeisureCentreQuery,
     insertIntoLeisurecentreCategoriesQuery
 } = require('../queries/leisurecentre.queries.js');
+const {
+    geocodeAddress
+} = require('./geocoding.services');
 
 //Get one leisure centre by id
 const getOneLeisureCentre = id =>new Promise((resolve,reject)=>{
@@ -65,11 +68,18 @@ const updateLeisureCentreService =  (data, id) => new Promise((resolve, reject) 
 })
 
 
-// delete leisurecenter
-const deleteLeisureCentre = () => {
-}
+// delete leisurecenter with Stored Procedures deleteLeisureCentre (Bonus)
+const deleteLeisureCentreService = id => new Promise((resolve,reject)=>{
+     cnx.query("CALL deleteLeisureCentre(?)",[parseInt(id)], (error, results)=>{
+         if (error) {
+             reject(error);
+         } else {
+             resolve(JSON.parse(JSON.stringify(results)));
+         }
+     });
+})
 const getLeisureCentreIfExists = data => new Promise((resolve, reject) => {
-    cnx.query(leisureCentreExsistQuery, [data.lat, data.lon], function (error, results, fields) {
+    cnx.query(leisureCentreExsistQuery, [data.lat, data.lon],(error, results)=>{
         if (error) {
             reject(error);
         } else {
@@ -98,9 +108,29 @@ exports.insertIntoLeisurecentreCategories = (leisureCentreId,data )=>{
         console.log(JSON.parse(JSON.stringify(results)));
     })
 }
+const geocodeAddressIfAddressChange = async (requestBody,id) =>{
+    //Get leisurecentre to complete address when user dont change full address.
+    let leisureCentre = await getOneLeisureCentre(id);
+
+    if (!requestBody.addressName) requestBody.addressName = leisureCentre.addressName;
+    if (!requestBody.zipCode) requestBody.zipCode = leisureCentre.zipCode;
+    if (!requestBody.cite) requestBody.cite = leisureCentre.cite;
+    if (!requestBody.country) requestBody.country = leisureCentre.country;
+
+
+    try {
+        let coordinates = await geocodeAddress(requestBody);
+        requestBody['lon'] = coordinates[0];
+        requestBody['lat'] = coordinates[1];
+        return requestBody;
+    } catch (error) {
+        throw new Error(error)
+    }
+}
 module.exports.createLeisureCentre = createLeisureCentre;
 module.exports.updateLeisureCentreService = updateLeisureCentreService;
-module.exports.deleteLeisureCentre = deleteLeisureCentre;
+module.exports.deleteLeisureCentreService = deleteLeisureCentreService;
 module.exports.getAllLeisuresCenters = getAllLeisuresCenters;
 module.exports.getLeisureCentreByCategorie = getLeisureCentreByCategorie;
 module.exports.getOneLeisureCentre = getOneLeisureCentre;
+module.exports.geocodeAddressIfAddressChange = geocodeAddressIfAddressChange;

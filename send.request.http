@@ -22,14 +22,14 @@ POST http://localhost:3000/api/leisurecentre
 content-Type: application/json
 
 {
-    "centreName" : "SESQUIERES 99",
+    "centreName" : "SESQUIERES 2",
     "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement",
     "website" : "TEST UPDATE QUERY",
-    "addressName" : "Allée des Foulques",
-    "cite" : "Toulouse",
-    "zipCode" : 31200,
-    "country" : "Espagne",
-    "categories" : ["Wakeboard","Paddle"]
+    "addressName" : "avenu des chalets",
+    "cite" : "Launaguet",
+    "zipCode" : 31140,
+    "country" : "France",
+    "categories" : ["Paddle","footsalle"]
 }
 
 
@@ -45,3 +45,6 @@ content-Type: application/json
     "zipCode":31200,
     "cite":"Toulouse"
 }
+
+### Delete leisurecentre and leisurecentre_categories
+DELETE http://localhost:3000/api/leisurecentre/49
