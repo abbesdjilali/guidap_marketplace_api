@@ -13,13 +13,16 @@ router.get('/', getLeisuresCentresList);
 // get LeisureCentre by categorie
 router.post('/by-categorie', getLeisureCentreByCategorie);
 
-// create LeisureCentre
+// create a new LeisureCentre
 router.post('/', createLeisureCentre);
 
-// update LeisureCentre
+// update one LeisureCentre
 router.put('/:id', updateLeisureCentre);
 
-// delete LeisureCentre
+// update categories of LeisureCentre
+router.put('/categories/:id', updateLeisureCentre);
+
+// delete one LeisureCentre
 router.delete('/:id', deleteLeisureCentre);
 
 module.exports = router;

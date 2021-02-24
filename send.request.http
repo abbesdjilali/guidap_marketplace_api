@@ -22,20 +22,26 @@ POST http://localhost:3000/api/leisurecentre
 content-Type: application/json
 
 {
-    "centreName" : "SESQUIERES",
-    "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement 
-    dédié au sport : en accès libre bicross, parc de jeux d'enfants, tables de ping-pong, boulodrome, multisport, terrain de football, terrains de tennis, modules fitness. Dans le Wam Park Toulouse : piste d'athlétisme, téléski nautique, badminton. Cynodrome. Section des quilles de 8 de l'amicale des aveyronnais de Toulouse. Et sur l'eau : wakeboard, kneeboard, wakeskate, wakeski, etc. de nombreuses activités sont possibles et deux téléskis, modernisés au printemps 2019, permettent la pratique du ski nautique.
-    Des aires de restauration sont également accessibles sur le site.
-    Accessibilité poussette, point d'eau potable...
-    Baignade non autorisée.",
+    "centreName" : "SESQUIERES 99",
+    "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement",
     "website" : "TEST UPDATE QUERY",
     "addressName" : "Allée des Foulques",
     "cite" : "Toulouse",
     "zipCode" : 31200,
-    "country" : "France",
-    "categories" : ["Wakeboard","Paddle",]
+    "country" : "Espagne",
+    "categories" : ["Wakeboard","Paddle"]
 }
 
 
 ###
-GET "https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=pk.eyJ1Ijoia2Fib3VtIiwiYSI6ImNrbGM4ZXVmOTA0cjQydW4xOXRlM3JsNmoifQ.X8Vq3IBGHBFvXTncwmQ5WQ"
+PUT http://localhost:3000/api/leisurecentre/39
+content-Type: application/json
+
+{
+    "centreName" : "SESQUIERES",
+    "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement",
+    "website" : "lac-sesquieres.fr",
+    "addressName":"Allée des Foulques",
+    "zipCode":31200,
+    "cite":"Toulouse"
+}

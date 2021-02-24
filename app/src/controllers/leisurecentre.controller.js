@@ -2,13 +2,15 @@ const {
     getAllLeisuresCenters,
     getLeisureCentreByCategorie,
     createLeisureCentre,
-    updateLeisureCentre,
+    updateLeisureCentreService,
     deleteLeisureCentre,
     insertOrUpdateLeisureCentreIfExists,
-    insertIntoLeisurecentreCategories
+    insertIntoLeisurecentreCategories,
+    getOneLeisureCentre
 } = require('../services/leisurecentre.services');
 const {
-    LeisureCentreSchema
+    LeisureCentreSchema,
+    UpdateLeisureCentreSchema
 } = require('../schemas/Leisurecentre.schema.js');
 const {
     geocodeAddress
@@ -38,6 +40,7 @@ exports.getLeisureCentreByCategorie = (req, res) => {
 // create  leisure centre 
 exports.createLeisureCentre = async (req, res) => {
     let leisureCentreReqData = req.body;
+    console.log("leisureCentreReqData ",leisureCentreReqData);
 
     //1- check all properties of leisure center
     const {error} = LeisureCentreSchema.validate(leisureCentreReqData);
@@ -67,9 +70,6 @@ exports.createLeisureCentre = async (req, res) => {
     
     //5- Insert relation in leisurecentre_categories table
     //and prepare data to insert into leisurecentre_categories table
-/*     tabCategoriesId = tabCategoriesId.map(relation=>{
-        return [leisureCentreId,relation[0].id];
-    }) */
     try {
         await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCat)
     } catch (error) {
@@ -77,13 +77,51 @@ exports.createLeisureCentre = async (req, res) => {
     }
     
     res.json({
-        status: true,
+        status: 200,
         message: 'leisure centre created Successfully',
     }) 
 
 }
 // update leisure centre 
-exports.updateLeisureCentre = (req, res) => {
+exports.updateLeisureCentre = async(req, res) => {
+    let requestBody = req.body;
+    let id = req.params.id
+    console.log("requestBody :",requestBody,"id :",id)
+    //1- check all properties of leisure center to update
+    const { error } = UpdateLeisureCentreSchema.validate(requestBody);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    //If update addresName,zipCode,cite or country
+    //Geocoding address to get latitude and longitude
+    let leisureCentre = await getOneLeisureCentre(id);
+    console.log("leisure centre :",leisureCentre);
+    const {addressName,zipCode,cite,country} = requestBody;
+     if(addressName || zipCode || cite || country){
+         if (!addressName) requestBody.addressName = leisureCentre.addressName;
+         if (!zipCode) requestBody.zipCode = leisureCentre.zipCode;
+         if (!cite) requestBody.cite = leisureCentre.cite;
+         if (!country) requestBody.country = leisureCentre.country;
+        try {
+            let coordinates = await geocodeAddress(requestBody);
+            requestBody['lon'] = coordinates[0];
+            requestBody['lat'] = coordinates[1];
+            console.log("requestBody after validation :", requestBody);
+
+        } catch (error) {
+            return res.status(400).send("Error to geocoding address :", error);
+        }
+    }
+    try {
+        let results = await updateLeisureCentreService(requestBody, id);
+        console.log(results)
+        res.json({
+            status: 200,
+            message: 'Leisure centre was updated Successfully',
+        })
+    } catch (error) {
+        res.status(400).send(`Error to update leisurecentre with id ${id}`, err);
+    } 
+    
 }
 
 // delete leisure centre 

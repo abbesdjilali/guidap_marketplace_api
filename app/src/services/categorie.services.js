@@ -7,9 +7,10 @@ exports.insertCategories = async (tabCategories, leisureCentreId) => {
     //Prepare sql queries to insert them in the db
     tabCategories.forEach(cat => {
         categorieName = cat.trim().toLowerCase();
-        let p = insertOneCategorie(categorieName);
+        let p =  insertOneCategorie(categorieName);
         tabPromise.push(p);
     })
+
     //Insert all categories in db and get id of each category inserted
     let categoriesId = await Promise.all(tabPromise).then(results => {
         return results
@@ -26,7 +27,7 @@ exports.insertCategories = async (tabCategories, leisureCentreId) => {
 
 
 const insertOneCategorie = categorieName => new Promise((resolve, reject) => {
-    cnx.query(`INSERT IGNORE INTO categories (name) values("${categorieName}");SELECT id from categories where name = "${categorieName}";`, (error, results) => {
+    cnx.query(`INSERT IGNORE INTO categories (name) values("${categorieName}");SELECT id FROM categories WHERE name = "${categorieName}";`, (error, results) => {
         if (error) {
             reject(error);
         } else {

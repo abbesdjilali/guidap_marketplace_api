@@ -8,6 +8,18 @@ const {
     insertIntoLeisurecentreCategoriesQuery
 } = require('../queries/leisurecentre.queries.js');
 
+//Get one leisure centre by id
+const getOneLeisureCentre = id =>new Promise((resolve,reject)=>{
+    cnx.query('SELECT * FROM leisurecentre WHERE id = ?',id,(err,results)=>{
+        if (err) {
+            reject(err);
+        } else {
+            resolve(JSON.parse(JSON.stringify(results[0])));
+        }
+    })    
+})
+
+
 // get all leisurecenters
 const getAllLeisuresCenters = (result) => {
 
@@ -42,8 +54,8 @@ const createLeisureCentre = data => new Promise((resolve, reject) => {
 })
 
 // update leisurecentre
-const updateLeisureCentre =  (data, id) => new Promise((resolve, reject) => {
-    cnx.query(updateLeisureCentreQuery(data,id),  (error, results) =>{
+const updateLeisureCentreService =  (data, id) => new Promise((resolve, reject) => {
+    cnx.query(updateLeisureCentreQuery,[data,id],(error, results) =>{
         if (error) {
             reject(error);
         } else {
@@ -70,21 +82,25 @@ exports.insertOrUpdateLeisureCentreIfExists = async (data) => {
     let result = await getLeisureCentreIfExists(data);
     let id
      if(result && result.length){
-        updateLeisureCentre(data,id);
-        return id = result[0].id;
+        id = result[0].id;
+        await updateLeisureCentreService(data, id);
+        return id;
     }else{
+         console.log('else ')
         id = await createLeisureCentre(data)
         return id.insertId
     }
 }
 exports.insertIntoLeisurecentreCategories = (leisureCentreId,data )=>{
-    cnx.query(insertIntoLeisurecentreCategoriesQuery(leisureCentreId,data), (err, results) => {
+    console.log(leisureCentreId,data)
+    cnx.query(insertIntoLeisurecentreCategoriesQuery, [leisureCentreId,data], (err, results) => {
         if(err) throw new Error(err.message)
         console.log(JSON.parse(JSON.stringify(results)));
     })
 }
 module.exports.createLeisureCentre = createLeisureCentre;
-module.exports.updateLeisureCentre = updateLeisureCentre;
+module.exports.updateLeisureCentreService = updateLeisureCentreService;
 module.exports.deleteLeisureCentre = deleteLeisureCentre;
 module.exports.getAllLeisuresCenters = getAllLeisuresCenters;
 module.exports.getLeisureCentreByCategorie = getLeisureCentreByCategorie;
+module.exports.getOneLeisureCentre = getOneLeisureCentre;

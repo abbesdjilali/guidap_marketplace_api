@@ -7,7 +7,8 @@ const cnx = mysql.createConnection({
     port: 3306,
     user: 'guidap_user',
     password: 'guidap_pass',
-    database: 'guidap_marketplace_db'
+    database: 'guidap_marketplace_db',
+    multipleStatements: true
 });
 
 cnx.connect(function (error) {
