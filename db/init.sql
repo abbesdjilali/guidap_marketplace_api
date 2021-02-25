@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : guidap_mysql: 3306
--- Généré le :  mar. 23 fév. 2021 à 13:22
+-- Généré le :  mer. 24 fév. 2021 à 07:12
 -- Version du serveur :  5.7.33
 -- Version de PHP :  7.2.2
 
@@ -22,6 +22,22 @@ SET time_zone = "+00:00";
 -- Base de données :  `guidap_marketplace_db`
 --
 
+DELIMITER $$
+--
+-- Procédures
+--
+CREATE DEFINER=`guidap_user`@`%` PROCEDURE `deleteLeisureCentre` (IN `id_leisurecentre` INT)  MODIFIES SQL DATA
+    SQL SECURITY INVOKER
+BEGIN
+
+	DELETE FROM leisurecentre_categories WHERE leisurecentre_id = id_leisurecentre;
+    
+	DELETE FROM leisurecentre WHERE id = id_leisurecentre;
+    
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -32,14 +48,6 @@ CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Déchargement des données de la table `categories`
---
-
-INSERT INTO `categories` (`id`, `name`) VALUES
-(5, 'kitesurf'),
-(4, 'plongé');
 
 -- --------------------------------------------------------
 
@@ -69,7 +77,7 @@ CREATE TABLE `leisurecentre` (
 CREATE TABLE `leisurecentre_categories` (
   `leisurecentre_id` int(11) NOT NULL,
   `categories_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -122,13 +130,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT pour la table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `leisurecentre`
 --
 ALTER TABLE `leisurecentre`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `users`

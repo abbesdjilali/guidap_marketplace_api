@@ -12,7 +12,7 @@ const LeisureCentreSchema = Joi.object({
     cite: Joi.string().min(4).max(25).required(),
     zipCode: Joi.number().required(),
     country : Joi.string().required(),
-    categories: Joi.array().items(Joi.string())
+    categories: Joi.array().items(Joi.string()).min(1).required()
 })
 
 const UpdateLeisureCentreSchema = Joi.object({

@@ -8,33 +8,33 @@ GET http://localhost:3000
 ### Check users routes 
 GET http://localhost:3000/user HTTP/1.1
 
-### 
+### REGISTER NEW USER AND CREATE ACCESS_TOKEN WITH JWT 
 POST http://localhost:3000/user/register
 
 
 
-### CHECK API ROUTES
+### GET ALL LEISURES CENTRES
 GET http://localhost:3000/api/leisurecentre HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MTQwMDM5OTB9.Ib7ubByEdSYlxwcEfE-xfHxxM8T-tFmNCv-4FjBGGwM
 
-### 
+### CREATE A NEW LEISURE CENTRE
 POST http://localhost:3000/api/leisurecentre
 content-Type: application/json
 
 {
-    "centreName" : "SESQUIERES 2",
-    "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement",
-    "website" : "TEST UPDATE QUERY",
-    "addressName" : "avenu des chalets",
+    "centreName" : "getWeekWeather",
+    "description" : "La base de loisirs de Bruguières est le poumon vert de la ville. Jeux pour enfants sur place. Des tables avec bancs sont mis a disposition pour un pique-nique. un port miniature les ti-pirates, balade en bateaux électriques sur le lac de la base de loisirs, est en activité sur le site d'avril à septembre, vente de glaces, paninis et boissons a emporter durant cette période également (plus d'infos sur www.lesti-pirates.com)",
+    "website" : "get weather",
+    "addressName" : "avenue des nobles",
     "cite" : "Launaguet",
     "zipCode" : 31140,
     "country" : "France",
-    "categories" : ["Paddle","footsalle"]
+    "categories" : ["Paddle","kitesurf"]
 }
 
 
-###
-PUT http://localhost:3000/api/leisurecentre/39
+### UPDATE LEISURE CENTRE
+PUT http://localhost:3000/api/leisurecentre/10
 content-Type: application/json
 
 {
@@ -46,5 +46,5 @@ content-Type: application/json
     "cite":"Toulouse"
 }
 
-### Delete leisurecentre and leisurecentre_categories
+### DELETE LEISURE CENTRE AND RELATION IN LEISURECENTRE_CATEGORIES TABLE
 DELETE http://localhost:3000/api/leisurecentre/49
