@@ -41,8 +41,8 @@ app.use("/api/leisurecentre", apiRouter);
 
 const moment  = require("moment");
 const tz = require('moment-timezone')
-const start = moment.tz("Europe/Paris").startOf('day').utc().unix();
-const end = moment.tz("Europe/Paris").endOf('day').utc().unix();
+const start = moment.tz("Europe/Paris").add(1, 'days').startOf('day').utc().unix();
+const end = moment.tz("Europe/Paris").add(1, 'days').endOf('day').utc().unix();
 console.log(start,end)
 app.listen(port, function () {
     console.log('GUIDAP API listening on port ' + port);

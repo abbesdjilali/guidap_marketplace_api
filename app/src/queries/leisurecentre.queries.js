@@ -1,21 +1,40 @@
 const mysql = require('mysql');
-const getAllLeisureCentresQuery =(start,end)=>{
-    return `SELECT l.centreName,l.description,l.website,l.addressName,l.zipCode,l.cite,l.country,l.lat,l.lon,
-                                CONCAT(l.addressName,', ',l.zipCode,', ',cite,', ',country,'.') as fullAddress,
-                                CONCAT("[", GROUP_CONCAT(c.name), "]") categories,
-                                w.weatherData
-                                FROM leisurecentre l 
-                                JOIN leisurecentre_categories lc 
-                                ON lc.leisurecentre_id = l.id
-                                JOIN categories c
-                                ON lc.categories_id = c.id
-                                JOIN leisurecentre_weather lw
-                                ON lw.leisurecentre_id = l.id
-                                JOIN weather w
-                                ON lw.weather_id = w.id AND w.dt_timestamp BETWEEN ${start} AND ${end}
-                                GROUP BY l.id;
-                                `;
-} 
+const moment = require("moment");
+const tz = require('moment-timezone');
+const getAllLeisureCentresQuery = (limit, offset, categories) => {
+    let andFiltredByCategory = "";
+    if (categories) {
+        andFiltredByCategory = 'AND (';
+        for (let i = 0; i < categories.length; i++) {
+            andFiltredByCategory += `c.name = "${categories[i]}" OR `
+        }
+        andFiltredByCategory = andFiltredByCategory.substring(0, andFiltredByCategory.length - 3) + ')';
+
+    }
+    const start = moment.tz("Europe/Paris").add(1, "days").startOf('day').utc().unix();
+    const end = moment.tz("Europe/Paris").add(1, "days").endOf('day').utc().unix();
+
+    return `SELECT l.id,l.centreName,l.description,l.website,l.addressName,l.zipCode,l.cite,l.country,l.lat,l.lon,
+            CONCAT(addressName,', ',zipCode,', ',cite,', ',country,'.') fullAddress,
+            CONCAT("[", GROUP_CONCAT(c.name), "]") categories,
+            ANY_VALUE(w.weatherData) weather
+            FROM leisurecentre l 
+            JOIN leisurecentre_categories lc 
+            ON lc.leisurecentre_id = l.id
+            JOIN categories c
+            ON lc.categories_id = c.id ${andFiltredByCategory}
+            JOIN leisurecentre_weather lw
+            ON lw.leisurecentre_id = l.id
+            JOIN weather w
+            ON lw.weather_id = w.id AND w.dt_timestamp BETWEEN ${start} AND ${end}
+            GROUP BY l.id LIMIT ${limit} OFFSET ${offset};
+            SELECT count(*) nbItems
+            FROM leisurecentre l 
+            JOIN leisurecentre_categories lc 
+            ON lc.leisurecentre_id = l.id
+            JOIN categories c
+            ON lc.categories_id = c.id ${andFiltredByCategory}`;
+}
 exports.getLeisurCentreByCategorie = (categories_id) => {
     let str = ""
     categories_id.forEach(id => {

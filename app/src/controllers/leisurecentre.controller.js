@@ -24,16 +24,44 @@ const {
     getWeekWeather,
     insertWeather
 } = require('../services/openweather.services');
+const {
+    string
+} = require('joi');
 
 // get all leisure centre list
 exports.getLeisuresCentresList = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const categories = req.query.categories && req.query.categories.split(',');
+    const offset = (page - 1) * limit;
+    const endIndex = page * limit
+
     try {
-        let leisuresCentres = await getAllLeisuresCenters();
-        return res.json({
+        let {
+            leisuresCentres,
+            totalItems
+        } = await getAllLeisuresCenters(limit, offset, categories);
+        console.log(leisuresCentres, totalItems)
+        const totalPages = Math.ceil(totalItems / limit);
+        const itemsPerPage = limit > leisuresCentres.length ? leisuresCentres.length : limit;
+        let results = {
             status: 200,
-            message: leisuresCentres.length ? `Items : ${leisuresCentres.length}` : "No data in the database",
-            data : leisuresCentres
-        })
+            message: totalItems ? `All Leisure centre to practice the following activities : ${categories.join()}` : `No data in the database for following activities :${categories.join()}`,
+            totalPages: totalPages,
+            currentPage: page,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            //Math.ceil retourne le plus petit entier supérieur ou égal au nombre donné GÉNIAL :)
+            totalItems: totalItems,
+            itemsPerPage: itemsPerPage,
+            data: leisuresCentres
+        }
+        if (page > totalPages)
+            delete results.nextPage;
+        if (page <= 1)
+            delete results.previousPage;
+
+        return res.json(results)
     } catch (error) {
         return res.status(400).send(error);
     }
@@ -103,7 +131,7 @@ exports.createLeisureCentre = async (req, res) => {
     let relationLeisureCat;
     try {
         relationLeisureCat = await insertCategories(categories, leisureCentreId);
-        console.log("relationLeisureCat ",relationLeisureCat)
+        console.log("relationLeisureCat ", relationLeisureCat)
     } catch (error) {
         return res.status(400).send("Error to insert into categories table ", error);
     }
@@ -112,7 +140,7 @@ exports.createLeisureCentre = async (req, res) => {
     let relationLeisureWeather;
     try {
         relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentreId);
-        console.log("relationLeisureWeather :",relationLeisureWeather)
+        console.log("relationLeisureWeather :", relationLeisureWeather)
     } catch (error) {
         console.log(error)
         return res.status(400).send(error);
@@ -144,12 +172,22 @@ exports.updateLeisureCentre = async (req, res) => {
     let requestBody = req.body;
     let id = req.params.id
     console.log("requestBody :", requestBody, "id :", id)
-    //1- check all properties of leisure center to update
-    const {
-        error
-    } = UpdateLeisureCentreSchema.validate(requestBody);
-    if (error) return res.status(400).send(error.details[0].message);
 
+    if (!requestBody || !id)
+        return res.status(400).send("ERROR INVALID DATA TO UPDATE LEISURE CENTRE");
+
+    //1- check all properties of leisure center to update
+    const { error } = UpdateLeisureCentreSchema.validate(requestBody);
+    if (error){
+        console.log(error)
+        return res.status(400).send(error);
+    }
+
+    console.log("Request body after validate ", requestBody);
+
+    let leisureCentre = await getOneLeisureCentre(id);
+    if (!leisureCentre)
+        return res.status(400).send("NO LEISURE CENTRE WITH ID = " + id);
     //If update addresName,zipCode,cite or country
     //Geocoding address to get new latitude and longitude
     //Get weather for new address
@@ -161,12 +199,12 @@ exports.updateLeisureCentre = async (req, res) => {
     } = requestBody;
     if (addressName || zipCode || cite || country) {
         try {
-            requestBody = await geocodeAddressIfAddressChange(requestBody, id);
+            requestBody = await geocodeAddressIfAddressChange(requestBody, leisureCentre);
             //Get weather for 7 days
             let weekWeatherJson = await getWeekWeather(requestBody.lat, requestBody.lon);
             console.log("weekWeatherJson  : ", weekWeatherJson);
             let relationLeisureWeather = await insertWeather(weekWeatherJson, id);
-            console.log("relationLeisureWeather",relationLeisureWeather)
+            console.log("relationLeisureWeather", relationLeisureWeather)
             await insertIntoLeisurecentreWeather(id, relationLeisureWeather);
         } catch (error) {
             console.log(error)
@@ -189,17 +227,18 @@ exports.updateLeisureCentre = async (req, res) => {
 
 // delete leisure centre 
 exports.deleteLeisureCentre = async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
     if (!id)
         res.status(400).send('You must enter a valid ID in to url')
     try {
         let result = await deleteLeisureCentreService(id);
-        console.log(result);
         res.json({
-            status: 200,
-            message: 'Leisure centre was deleted Successfully',
+            status: result.affectedRows ? 200 : 400,
+            message: result.affectedRows ? 'Leisure centre was deleted Successfully' : `NO LEISURE CENTRE TO DELETE WITH ID = ${id}`
         })
     } catch (error) {
         res.status(400).send(error)
     }
 }
+
+

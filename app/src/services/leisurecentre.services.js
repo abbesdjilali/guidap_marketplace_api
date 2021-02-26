@@ -1,7 +1,5 @@
 //Import db connexion
 const cnx = require('../config/db.config');
-const moment = require("moment");
-const tz = require('moment-timezone');
 const {
     getAllLeisureCentresQuery,
     leisureCentreExsistQuery,
@@ -16,31 +14,31 @@ const {
 
 //Get one leisure centre by id
 const getOneLeisureCentre = id => new Promise((resolve, reject) => {
+    console.log("id :",id)
     cnx.query('SELECT * FROM leisurecentre WHERE id = ?', id, (err, results) => {
         if (err) {
-            reject(err);
+            return reject(err);
         } else {
-            resolve(JSON.parse(JSON.stringify(results[0])));
+            resolve(results[0]);
         }
     })
 })
 
 
 // get all leisurecenters
-const getAllLeisuresCenters = () => new Promise((resolve, reject) => {
-
-    const start = moment.tz("Europe/Paris").startOf('day').utc().unix();
-    const end = moment.tz("Europe/Paris").endOf('day').utc().unix();
-    cnx.query(getAllLeisureCentresQuery(start,end), (err, res) => {
+const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolve, reject) => {
+    cnx.query(getAllLeisureCentresQuery(limit, offset, categories), (err, res) => {
         if (err) return reject(err);
         //group categories name(string) in to array
-        console.log("res before map", res);
-        res.map(obj => {
+        res[0].map(obj => {
             obj.categories = (obj.categories.substring(1, obj.categories.length - 1).split(','))
+            // obj.categories = JSON.parse(obj.categories);
+            obj.weather = JSON.parse(obj.weather);
         })
-        console.log("res after map", res);
-
-        resolve(res);
+        resolve({
+            leisuresCentres:res[0],
+            totalItems : res[1][0].nbItems
+        });
 
     })
 })
@@ -129,23 +127,18 @@ exports.insertIntoLeisurecentreWeather = (leisureCentreId, data) => {
         console.log(JSON.parse(JSON.stringify(results)));
     })
 }
-const geocodeAddressIfAddressChange = async (requestBody, id) => {
-    //Get leisurecentre to complete address when user dont change full address.
-    let leisureCentre = await getOneLeisureCentre(id);
-
+const geocodeAddressIfAddressChange = async (requestBody, leisureCentre) => {
     if (!requestBody.addressName) requestBody.addressName = leisureCentre.addressName;
     if (!requestBody.zipCode) requestBody.zipCode = leisureCentre.zipCode;
     if (!requestBody.cite) requestBody.cite = leisureCentre.cite;
     if (!requestBody.country) requestBody.country = leisureCentre.country;
-
-
     try {
         let coordinates = await geocodeAddress(requestBody);
         requestBody['lon'] = coordinates[0];
         requestBody['lat'] = coordinates[1];
         return requestBody;
     } catch (error) {
-        throw new Error(error)
+        return error
     }
 }
 module.exports.createLeisureCentre = createLeisureCentre;

@@ -6,26 +6,26 @@ const cnx = require('../config/db.config');
 
 
 const baseUrl = "https://api.openweathermap.org/data/2.5/";
-exports.getWeekWeather = async (lat,lon) => {
-    const response = await fetch(`${baseUrl}onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&appid=${process.env.OPEN_WEATHER_API_KEY}`);
-    console.log("response weather api :", response.statusText)
-    if (response.status != 200) {
-        const message = `Can't get weather : ${response.status}`;
-        throw new Error(message);
+exports.getWeekWeather = async (lat, lon) => {
+    try {
+        const response = await fetch(`${baseUrl}onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&appid=${process.env.OPEN_WEATHER_API_KEY}`);
+        console.log("response weather api :", response.statusText)
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        throw error
     }
-    const result = await response.json();
-    return result;
 }
 
 
 exports.insertWeather = async (weatherData, leisureCentreId) => {
     let tabPromise = [];
-    console.log("weatherData :",weatherData)
+    console.log("weatherData :", weatherData)
     //Prepare sql queries to insert them in the db
     weatherData.daily.forEach(day => {
         let data = {
-            weather : day,
-            dt : day.dt
+            weather: day,
+            dt: day.dt
         }
         let p = insertOneWeather(data);
         tabPromise.push(p);

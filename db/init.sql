@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : guidap_mysql: 3306
--- Généré le :  mer. 24 fév. 2021 à 07:12
+-- Généré le :  ven. 26 fév. 2021 à 02:34
 -- Version du serveur :  5.7.33
 -- Version de PHP :  7.2.2
 
@@ -31,6 +31,8 @@ CREATE DEFINER=`guidap_user`@`%` PROCEDURE `deleteLeisureCentre` (IN `id_leisure
 BEGIN
 
 	DELETE FROM leisurecentre_categories WHERE leisurecentre_id = id_leisurecentre;
+    
+    DELETE FROM leisurecentre_weather WHERE leisurecentre_id = id_leisurecentre;
     
 	DELETE FROM leisurecentre WHERE id = id_leisurecentre;
     
@@ -82,6 +84,17 @@ CREATE TABLE `leisurecentre_categories` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `leisurecentre_weather`
+--
+
+CREATE TABLE `leisurecentre_weather` (
+  `leisurecentre_id` int(11) NOT NULL,
+  `weather_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `users`
 --
 
@@ -89,6 +102,18 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `email` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   `password` varchar(255) CHARACTER SET utf8mb4 NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `weather`
+--
+
+CREATE TABLE `weather` (
+  `id` int(11) NOT NULL,
+  `weatherData` json NOT NULL,
+  `dt_timestamp` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -117,9 +142,23 @@ ALTER TABLE `leisurecentre_categories`
   ADD KEY `fk_leisurecentre_has_categories_leisurecentre_idx` (`leisurecentre_id`);
 
 --
+-- Index pour la table `leisurecentre_weather`
+--
+ALTER TABLE `leisurecentre_weather`
+  ADD PRIMARY KEY (`leisurecentre_id`,`weather_id`),
+  ADD KEY `fk_leisurecentre_has_weather_leisurecentre_idx` (`leisurecentre_id`),
+  ADD KEY `fk_leisurecentre_has_weather_weather1_idx` (`weather_id`);
+
+--
 -- Index pour la table `users`
 --
 ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `weather`
+--
+ALTER TABLE `weather`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -145,6 +184,12 @@ ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `weather`
+--
+ALTER TABLE `weather`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Contraintes pour les tables déchargées
 --
 
@@ -154,6 +199,13 @@ ALTER TABLE `users`
 ALTER TABLE `leisurecentre_categories`
   ADD CONSTRAINT `fk_leisurecentre_has_categories_categories1` FOREIGN KEY (`categories_id`) REFERENCES `categories` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `fk_leisurecentre_has_categories_leisurecentre` FOREIGN KEY (`leisurecentre_id`) REFERENCES `leisurecentre` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Contraintes pour la table `leisurecentre_weather`
+--
+ALTER TABLE `leisurecentre_weather`
+  ADD CONSTRAINT `fk_leisurecentre_has_weather_leisurecentre` FOREIGN KEY (`leisurecentre_id`) REFERENCES `leisurecentre` (`id`),
+  ADD CONSTRAINT `fk_leisurecentre_has_weather_weather1` FOREIGN KEY (`weather_id`) REFERENCES `weather` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

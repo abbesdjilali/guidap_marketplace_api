@@ -13,8 +13,24 @@ POST http://localhost:3000/user/register
 
 
 
-### GET ALL LEISURES CENTRES
+### GET 20 ITEMS OF LEISURES CENTRES WITH DEFAULT LIMIT = 20  
 GET http://localhost:3000/api/leisurecentre HTTP/1.1
+
+### GET LEISURES CENTRES WITH CATEGORIES IN QUERY
+GET http://localhost:3000/api/leisurecentre?categories=kitesurf HTTP/1.1
+
+### GET ALL LEISURES CENTRES MANY CATEGORIES IN QUERY SEPARETED WITH COMMA ( , ),
+GET http://localhost:3000/api/leisurecentre?categories=kitesurf,paddle HTTP/1.1
+
+### GET LEISURES CENTRES WITH LIMIT AND CATEGORIE IN QUERY 
+GET http://localhost:3000/api/leisurecentre?limit=5&categories=kitesurf,paddle HTTP/1.1
+
+### GET LEISURES CENTRES WITH LIMIT,PAGE AND CATEGORIE IN QUERY 
+GET http://localhost:3000/api/leisurecentre?page=2&limit=2&categories=kitesurf,paddle HTTP/1.1
+
+### GET ALL LEISURES CENTRES with one category
+
+GET http://localhost:3000/api/leisurecentre?categories=kitesurf,paddle HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MTQwMDM5OTB9.Ib7ubByEdSYlxwcEfE-xfHxxM8T-tFmNCv-4FjBGGwM
 
 ### CREATE A NEW LEISURE CENTRE
@@ -34,7 +50,7 @@ content-Type: application/json
 
 
 ### UPDATE LEISURE CENTRE
-PUT http://localhost:3000/api/leisurecentre/10
+PUT http://localhost:3000/api/leisurecentre/23
 content-Type: application/json
 
 {
@@ -47,4 +63,4 @@ content-Type: application/json
 }
 
 ### DELETE LEISURE CENTRE AND RELATION IN LEISURECENTRE_CATEGORIES TABLE
-DELETE http://localhost:3000/api/leisurecentre/49
+DELETE http://localhost:3000/api/leisurecentre/24
