@@ -3,7 +3,7 @@ const mysql = require('mysql');
 // create here mysql connection
 
 const cnx = mysql.createConnection({
-    host: 'mysql',
+    host: 'db',
     port: 3306,
     user: 'guidap_user',
     password: 'guidap_pass',

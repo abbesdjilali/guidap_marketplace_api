@@ -2,14 +2,15 @@ const mysql = require('mysql');
 const moment = require("moment");
 const tz = require('moment-timezone');
 const getAllLeisureCentresQuery = (limit, offset, categories) => {
+    console.log("categories in req ",categories)
     let andFiltredByCategory = "";
     if (categories) {
+        console.log("In if categories ------------------------")
         andFiltredByCategory = 'AND (';
         for (let i = 0; i < categories.length; i++) {
             andFiltredByCategory += `c.name = "${categories[i]}" OR `
         }
         andFiltredByCategory = andFiltredByCategory.substring(0, andFiltredByCategory.length - 3) + ')';
-
     }
     const start = moment.tz("Europe/Paris").add(1, "days").startOf('day').utc().unix();
     const end = moment.tz("Europe/Paris").add(1, "days").endOf('day').utc().unix();

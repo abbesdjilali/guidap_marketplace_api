@@ -1,23 +1,6 @@
 version: "3.2"
 services:
-  app:
-    build: ./app
-    image: docker.guidap_marketplace_api
-    networks:
-      - frontend
-      - backend
-    volumes:
-      - ./app/:/app/
-    ports:
-      - "3000:3000"
-    environment:
-      - MYSQL_ROOT_PASSWORD=guidap_root
-      - MYSQL_USER=guidap_user
-      - MYSQL_PASSWORD=guidap_pass 
-      - MYSQL_DATABASE=guidap_marketplace_db
-    container_name: docker.guidap_app
-
-  mysql:
+  db:
     image: mysql:5.7
     networks:
       - backend
@@ -29,21 +12,43 @@ services:
     volumes: 
       - ./db:/docker-entrypoint-initdb.d/:ro
     container_name: guidap_mysql
-
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
     depends_on:
-      - mysql
+      - db
     networks:
       - backend
     ports:
-      - "3001:80"
+      - "3002:80"
     environment:
       - PMA_HOST=guidap_mysql
       - PMA_PORT= 3306
     volumes: 
       - /sessions
     container_name: guidap_phpmyadmin
+  app:
+    build: ./app/
+    image: docker.guidap_marketplace_api
+    depends_on:
+      - db
+    command: sh -c "/wait && npm start" 
+    stdin_open: true
+    tty: true
+    networks:
+      - frontend
+      - backend
+    environment:
+      - MYSQL_USER=guidap_user
+      - MYSQL_PASSWORD=guidap_pass 
+      - MYSQL_DATABASE=guidap_marketplace_db
+      - WAIT_HOSTS=db:3306
+      - WAIT_HOSTS_TIMEOUT=60
+    volumes:
+      - ./app/:/app/
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    container_name: docker.guidap_app
 networks:
   frontend:
   backend:

@@ -22,21 +22,21 @@ app.get('/', (req, res) => {
 app.use("/api/leisurecentre", apiRouter);
 
 //insert data to database 
-/* (async () => {
+//  (async () => {
 
-    const fetch = require('node-fetch');
-    const {data} =  require("./data");
-    for await (leisureCentre of data){
-        await fetch('http://localhost:3000/api/leisurecentre',
-        {
-            method : "POST",
-            body: JSON.stringify(leisureCentre),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-    };
-})()  */
+//     const fetch = require('node-fetch');
+//     const {data} =  require("./data");
+//     for await (leisureCentre of data){
+//         await fetch('http://localhost:3000/api/leisurecentre',
+//         {
+//             method : "POST",
+//             body: JSON.stringify(leisureCentre),
+//             headers: {
+//                 "Content-Type": "application/json"
+//             }
+//         })
+//     };
+// })()  
 
 
 const moment  = require("moment");

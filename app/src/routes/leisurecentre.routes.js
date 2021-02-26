@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {
     getLeisuresCentresList,
-    getLeisureCentreByCategorie,
+    getCategoriesList,
     createLeisureCentre,
     updateLeisureCentre,
     deleteLeisureCentre
@@ -11,7 +11,7 @@ const {
 router.get('/', getLeisuresCentresList);
 
 // get LeisureCentre by categorie
-router.post('/by-categorie', getLeisureCentreByCategorie);
+router.get('/categories', getCategoriesList);
 
 // create a new LeisureCentre
 router.post('/', createLeisureCentre);

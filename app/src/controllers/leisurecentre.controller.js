@@ -1,6 +1,6 @@
 const {
     getAllLeisuresCenters,
-    getLeisureCentreByCategorie,
+    getCategoriesList,
     createLeisureCentre,
     updateLeisureCentreService,
     deleteLeisureCentreService,
@@ -31,7 +31,7 @@ const {
 // get all leisure centre list
 exports.getLeisuresCentresList = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 5;
     const categories = req.query.categories && req.query.categories.split(',');
     const offset = (page - 1) * limit;
     const endIndex = page * limit
@@ -41,12 +41,13 @@ exports.getLeisuresCentresList = async (req, res) => {
             leisuresCentres,
             totalItems
         } = await getAllLeisuresCenters(limit, offset, categories);
-        console.log(leisuresCentres, totalItems)
+        
         const totalPages = Math.ceil(totalItems / limit);
         const itemsPerPage = limit > leisuresCentres.length ? leisuresCentres.length : limit;
+
         let results = {
             status: 200,
-            message: totalItems ? `All Leisure centre to practice the following activities : ${categories.join()}` : `No data in the database for following activities :${categories.join()}`,
+            // message: totalItems ? `All Leisure centre to practice the following activities : ${categories && categories.join()}` : `No data in the database`,
             totalPages: totalPages,
             currentPage: page,
             nextPage: page + 1,
@@ -56,6 +57,8 @@ exports.getLeisuresCentresList = async (req, res) => {
             itemsPerPage: itemsPerPage,
             data: leisuresCentres
         }
+        console.log("leisuresCentres", leisuresCentres, totalItems)
+
         if (page > totalPages)
             delete results.nextPage;
         if (page <= 1)
@@ -69,12 +72,11 @@ exports.getLeisuresCentresList = async (req, res) => {
 
 
 // get leisure centre  by categorie
-exports.getLeisureCentreByCategorie = (req, res) => {
-    console.log(req.body)
-    getLeisureCentreByCategorie(req.body.categories_id, (err, leisuresCentres) => {
+exports.getCategoriesList = (req, res) => {
+    getCategoriesList(req.body.categories_id, (err, categories) => {
         if (err) res.send(err);
-        console.log(leisuresCentres)
-        res.json(leisuresCentres);
+        console.log(categories)
+        res.json(categories);
     })
 }
 

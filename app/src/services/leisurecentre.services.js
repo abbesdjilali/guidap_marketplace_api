@@ -14,7 +14,7 @@ const {
 
 //Get one leisure centre by id
 const getOneLeisureCentre = id => new Promise((resolve, reject) => {
-    console.log("id :",id)
+    console.log("id :", id)
     cnx.query('SELECT * FROM leisurecentre WHERE id = ?', id, (err, results) => {
         if (err) {
             return reject(err);
@@ -36,8 +36,8 @@ const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolv
             obj.weather = JSON.parse(obj.weather);
         })
         resolve({
-            leisuresCentres:res[0],
-            totalItems : res[1][0].nbItems
+            leisuresCentres: res[0],
+            totalItems: res[1][0].nbItems
         });
 
     })
@@ -45,16 +45,12 @@ const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolv
 
 
 // get leisures centers by category
-const getLeisureCentreByCategorie = (...categories_id) => {
-    console.log(categories_id)
-    cnx.query(getLeisurCentreByCategorie(categories_id), (err, res) => {
-        if (err) {
-            console.log('Error to get leisure centers by categorie', err);
+const getCategoriesList = () => {
+    cnx.query("SELECT * FROM categories", (err, res) => {
+        if (err)
             result(null, err);
-        } else {
-            console.log(res)
-            result(null, res);
-        }
+        result(null, res);
+
     })
 }
 
@@ -145,6 +141,6 @@ module.exports.createLeisureCentre = createLeisureCentre;
 module.exports.updateLeisureCentreService = updateLeisureCentreService;
 module.exports.deleteLeisureCentreService = deleteLeisureCentreService;
 module.exports.getAllLeisuresCenters = getAllLeisuresCenters;
-module.exports.getLeisureCentreByCategorie = getLeisureCentreByCategorie;
+module.exports.getCategoriesList = getCategoriesList;
 module.exports.getOneLeisureCentre = getOneLeisureCentre;
 module.exports.geocodeAddressIfAddressChange = geocodeAddressIfAddressChange;
