@@ -8,6 +8,7 @@ const {
 } = require('../controllers/leisurecentre.controller');
 
 // get all LeisureCentre
+
 router.get('/', getLeisuresCentresList);
 
 // get LeisureCentre by categorie

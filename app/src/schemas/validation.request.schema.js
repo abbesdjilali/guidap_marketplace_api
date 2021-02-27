@@ -1,7 +1,7 @@
 const Joi = require('joi');
+const j2s = require('joi-to-swagger');
 
 const LeisureCentreSchema = Joi.object({
-
     centreName: Joi.string()
         .min(3)
         .max(255)
@@ -26,6 +26,7 @@ const UpdateLeisureCentreSchema = Joi.object({
     zipCode: Joi.number(),
     country: Joi.string()
 })
-
+const {swagger,components} = j2s(LeisureCentreSchema);
+exports.LeisureCentreSwaggerSchema = swagger;
 module.exports.LeisureCentreSchema = LeisureCentreSchema;
 module.exports.UpdateLeisureCentreSchema = UpdateLeisureCentreSchema;

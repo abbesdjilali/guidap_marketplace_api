@@ -1,0 +1,273 @@
+{
+    "openapi":"3.0.2",
+    "info": {
+        "title":"Guidap marketplace api docs",
+        "version":"1.0"
+    },
+    "servers": [
+        {"url":"http://localhost:3000"}
+    ],
+    "components": {
+        "schemas": {
+            "Weather":{
+                "type": "object",
+                "properties": {
+                    "dt": {
+                        "type": "number",
+                        "example":1614513600
+                    },
+                    "pop":{
+                        "type":"number",
+                        "example":0.07
+                    }, 
+                    "uvi": {
+                        "type": "number",
+                        "example":2.94
+                    },
+                    "temp": {
+                        "type": "object",
+                        "properties": {
+                            "day":{
+                                "type": "number",
+                                "example": 286.9
+                            },
+                            "eve":{
+                                "type": "number",
+                                "example": 286.9
+                            },
+                            "max": {
+                                "type": "number",
+                                "example": 286.9
+                            },
+                            "min":{
+                                "type": "number",
+                                "example": 286.9
+                            },
+                            "morn": {
+                                "type": "number",
+                                "example": 286.9
+                            },
+                            "night":{
+                                "type": "number",
+                                "example": 286.9
+                            }
+                        }
+                    },
+                    "clouds": {
+                        "type": "number",
+                        "example": 20
+                     },
+                    "sunset": {
+                        "type": "number",
+                        "example": 286.9
+                    },
+                    "sunrise": {
+                        "type": "number",
+                        "example": 286.9
+                    },
+                    "weather":{
+                        "type":"array",
+                        "items":{
+                            "type": "object",
+                            "properties": {
+                                "id":{
+                                    "type": "number",
+                                    "example": 286.9
+                                },
+                                "icon":{
+                                    "type": "string",
+                                    "example": "04d"
+                                },
+                                "main":{
+                                    "type": "string",
+                                    "example":"Clouds"
+                                },
+                                "description":{
+                                    "type": "string",
+                                    "example":"broken clouds"
+                                }
+                            }
+                        }
+                    }, 
+                    "humidity":{
+                        "type": "number",
+                        "example": 61
+                    },
+                    "pressure":{
+                        "type": "number",
+                        "example": 1025
+                    },
+                    "wind_deg":{
+                        "type": "number",
+                        "example": 116
+                    },
+                    "dew_point":{
+                        "type": "number",
+                        "example": 279.72
+                    },
+                    "feels_like":{
+                        "type":"object",
+                        "properties": {
+                            "day": {
+                                "type": "number",
+                                "example": 280.3
+                            },
+                            "eve":{
+                                "type": "number",
+                                "example": 277.9
+                            },
+                            "morn": {
+                                "type": "number",
+                                "example": 275.34
+                            },
+                            "night": {
+                                "type": "number",
+                                "example": 276.94
+                            }
+                        }
+                    }, 
+                    "wind_speed": {
+                        "type": "number",
+                        "example": 8.23
+                    }
+                
+
+            
+                }
+            },
+            "Category":{
+                "type": "object",
+                "properties": {
+                    "id":{
+                        "type": "integer",
+                        "example":2
+                    },
+                    "name":{
+                        "type": "string",
+                        "example":"kitesurf"
+                    }
+                }
+
+            },
+            "LeisureCentre": {
+            "type":"object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "centreName":{
+                    "type":"string",
+                    "description":"Le nom de la base de loisirs",
+                    "example":"Base de loisirs la ramée"
+                },
+                "description":{
+                    "type":"string",
+                    "description": "la description de la base de loisirs"
+                },
+                "website":{
+                    "type":"string",
+                    "description":"Le lien de site web de la base de loisirs"
+                },
+                "addressName":{
+                    "type":"string",
+                    "description":"L'adresse de la base de loisirs",
+                    "example":"2 Avenue des nobles"
+                },
+                "zipCode":{
+                    "type": "number",
+                    "description": "Le code postal de la base de loisirs",
+                    "example":"31000"
+                },
+                "city":{
+                    "type":"string",
+                    "description":"La ville ou se trouve la base de loisirs",
+                    "example":"Toulouse"
+                },
+                "country":{
+                    "type":"string",
+                    "description":"Le pays ou se trouve la base de loisirs",
+                    "example":"2 Avenue des nobles"
+                },
+                "lat":{
+                    "type":"number",
+                    "description":"La latitude",
+                    "example":"43.615282"
+                },
+                "lon":{
+                    "type":"number",
+                    "description":"Longitude",
+                    "example":"1.472258"
+                },"fullAddress":{
+                    "type":"string",
+                    "description":"L'adresse complete de la base de loisirs",
+                    "example":"2 Avenue des nobles,31000,Toulouse,France."
+                },"categories":{
+                    "type": "array",
+                    "items":{
+                        "$ref":"#components/schemas/Category"
+                    }
+                },"weather":{
+                    "type": "object",
+                    "$ref":"#/components/schemas/Weather"
+                    
+                }
+            }
+        }
+        }
+    },
+    "paths": {
+        "/api/leisurecentre": {
+            "get": {
+                "description": "GET ALL LEISURE CENTRE",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Nombre de la page ",
+                        "required": false,
+                        "schema":{
+                            "type": "number",
+                            "example":"2"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Le nombre de base de loisirs que vous voulez par page  ",
+                        "required": false,
+                        "schema":{
+                            "type": "number",
+                            "example":"2"
+                        } 
+                    },
+                    {
+                        "name": "categories",
+                        "in": "query",
+                        "description": "Les noms d'activitées recherchés",
+                        "required": false,
+                        "schema":{
+                            "type": "string",
+                            "description": "nom de l'activité recherchée",
+                            "example":"kitesurf,paddle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "type": "array",
+                                    "items":{
+                                       "$ref":"#components/schemas/LeisureCentre"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

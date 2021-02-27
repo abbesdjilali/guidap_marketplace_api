@@ -17,7 +17,7 @@ const getAllLeisureCentresQuery = (limit, offset, categories) => {
 
     return `SELECT l.id,l.centreName,l.description,l.website,l.addressName,l.zipCode,l.cite,l.country,l.lat,l.lon,
             CONCAT(addressName,', ',zipCode,', ',cite,', ',country,'.') fullAddress,
-            CONCAT("[", GROUP_CONCAT(c.name), "]") categories,
+            CONCAT("", GROUP_CONCAT(c.id ,"-",c.name), "") categories,
             ANY_VALUE(w.weatherData) weather
             FROM leisurecentre l 
             JOIN leisurecentre_categories lc 
@@ -34,7 +34,8 @@ const getAllLeisureCentresQuery = (limit, offset, categories) => {
             JOIN leisurecentre_categories lc 
             ON lc.leisurecentre_id = l.id
             JOIN categories c
-            ON lc.categories_id = c.id ${andFiltredByCategory}`;
+            ON lc.categories_id = c.id ${andFiltredByCategory}
+            GROUP BY l.id;`;
 }
 exports.getLeisurCentreByCategorie = (categories_id) => {
     let str = ""

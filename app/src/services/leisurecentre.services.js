@@ -29,20 +29,33 @@ const getOneLeisureCentre = id => new Promise((resolve, reject) => {
 const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolve, reject) => {
     cnx.query(getAllLeisureCentresQuery(limit, offset, categories), (err, res) => {
         if (err) return reject(err);
-        //group categories name(string) in to array
-        res[0].map(obj => {
-            obj.categories = (obj.categories.substring(1, obj.categories.length - 1).split(','))
-            // obj.categories = JSON.parse(obj.categories);
-            obj.weather = JSON.parse(obj.weather);
-        })
+
+        //FORMAT RESPONSE AND PARSE WEATHER JSON
+        if(res[0].length)
+            res = formatResponse(res);
         resolve({
             leisuresCentres: res[0],
-            totalItems: res[1][0].nbItems
+            totalItems: res[1].length? res[1][0].nbItems : 0
         });
 
     })
 })
+const formatResponse = response => {
+    response[0].map(obj => {
+        categories = obj.categories.split(',')
+        obj.categories = categories.map(cat => {
+            let tab = cat.split('-');
+            return {
+                "id": parseInt(tab[0]),
+                "name": tab[1]
+            }
 
+        })
+        obj.weather = JSON.parse(obj.weather);
+    })
+
+    return response;
+}
 
 // get leisures centers by category
 const getCategoriesList = () => {

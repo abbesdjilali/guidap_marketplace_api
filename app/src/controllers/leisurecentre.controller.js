@@ -13,7 +13,7 @@ const {
 const {
     LeisureCentreSchema,
     UpdateLeisureCentreSchema
-} = require('../schemas/Leisurecentre.schema.js');
+} = require('../schemas/validation.request.schema.js');
 const {
     geocodeAddress
 } = require('../services/geocoding.services');
