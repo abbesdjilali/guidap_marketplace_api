@@ -7,7 +7,9 @@ const {
     insertIntoLeisurecentreCategories,
     getOneLeisureCentre,
     geocodeAddressIfAddressChange,
-    insertIntoLeisurecentreWeather
+    insertIntoLeisurecentreWeather,
+    geocodeAndGetNewWeatherIfAddressWasChanged,
+    checkData
 } = require('../services/leisurecentre.services');
 const {
     LeisureCentreSchema,
@@ -21,9 +23,7 @@ const {
     getWeekWeather,
     insertWeather
 } = require('../services/openweather.services');
-const {
-    string
-} = require('joi');
+
 
 // get all leisure centre list
 exports.getLeisuresCentresList = async (req, res) => {
@@ -71,182 +71,180 @@ exports.getLeisuresCentresList = async (req, res) => {
 // create  leisure centre 
 exports.createLeisureCentre = async (req, res) => {
     let leisureCentreReqData = req.body;
-    console.log("test")
-    console.log("leisureCentreReqData ", leisureCentreReqData);
 
-    //1- check all properties of leisure center
-    const {
-        error
-    } = LeisureCentreSchema.validate(leisureCentreReqData);
-    if (error) return res.status(400).send(error.details[0].message);
-
-    let {
-        categories
-    } = leisureCentreReqData;
-    delete leisureCentreReqData.categories;
+    //CHECK DATA OF REQUEST
+    let errorData = checkData(leisureCentreReqData, LeisureCentreSchema);
+    if (errorData && errorData.message)
+        return res.json({
+            status: 400,
+            message: error.message
+        });
 
     //2- Geocoding address to get latitude and longitude
+    console.log("GEOCODING ADDRESS START...")
     try {
         let coordinates = await geocodeAddress(leisureCentreReqData);
         leisureCentreReqData['lon'] = coordinates[0];
         leisureCentreReqData['lat'] = coordinates[1];
     } catch (error) {
+        console.log(error)
         return res.status(400).send("Error to geocoding address :", error);
     }
-
-    //Get weather for 7 days
-    let weekWeatherJson;
-    try {
-        weekWeatherJson = await getWeekWeather(leisureCentreReqData.lat, leisureCentreReqData.lon);
-        console.log("weekWeatherJson  : ", weekWeatherJson);
-    } catch (error) {
-        return res.status(400).send(error);
-    }
-
 
     //3- IF LEISURECENTRE EXISTS UPDATE ELSE INSERT INTO 
     // SI une base de loisirs exsiste avec la même latitude et longitude
     // en l'insérant on duplique la data dans la base de données
     // Ma logique : on ne peut pas avoir deux bases de loisirs différentes avec les mêmes coordonnées GPS
-    let leisureCentreId
+    const categories = leisureCentreReqData.categories;
+    delete leisureCentreReqData.categories;
+    console.log("categories",categories);
+    let leisureCentre;
     try {
-        leisureCentreId = await insertOrUpdateLeisureCentreIfExists(leisureCentreReqData);
-    } catch (error) {
-        return res.status(400).send(error);
-    }
-
-
-    //   Insert weather day in weather table   
-    let relationLeisureWeather;
-    try {
-        relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentreId);
-        console.log("relationLeisureWeather :", relationLeisureWeather)
+        //IF LEISURECENTRE EXISTS UPDATE ELSE INSERT INTO 
+        leisureCentre = await insertOrUpdateLeisureCentreIfExists(leisureCentreReqData);
     } catch (error) {
         console.log(error)
-        return res.status(400).send(error);
+        return res.json({
+            status: 400,
+            messages: error.message
+        });
     }
 
-    let relationLeisureCategories = categories.map(cat => {
-        return [leisureCentreId, cat]
-    })
-    //5- Insert relation in leisurecentre_categories table
-    //and prepare data to insert into leisurecentre_categories table
+    //INSERT INTO leisurecentre_categories TABLE
+    console.log("INSERT INTO leisurecentre_categories TABLE START...")
     try {
-        await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCategories);
+        await insertIntoLeisurecentreCategories(leisureCentre.id, categories);
     } catch (error) {
-        return res.status(400).send(error);
+        console.log(error)
+        return res.json({
+            status: 400,
+            messages: error.message
+        });
     }
 
-    try {
-        await insertIntoLeisurecentreWeather(leisureCentreId, relationLeisureWeather);
-    } catch (error) {
-        return res.status(400).send(error);
-    }
+    //IF LEISURE CENTRE WAS INSERTED
+    //GET WEATHER DATA FOR 7 DAYS
+    if (leisureCentre.isInserted) {
+        console.log("GET WEATHER START ...")
+        let weekWeatherJson;
+        try {
+            weekWeatherJson = await getWeekWeather(leisureCentreReqData.lat, leisureCentreReqData.lon);
+        } catch (error) {
+            console.log(error)
+            return res.json({
+                status: 400,
+                messages: error.message
+            });
+        }
 
-    res.json({
+        try {
+            //INSERT INTO weather TABLE WEATHER DATA JSON FOR EACH DAY (7 DAYS)
+            console.log("INSERT INTO WEATHER TABLE START...")
+            let relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentre.id);
+            //INSERT RELATION INTO leisurecentre_weather TABLE
+            console.log("INSERT INTO LEISURECENTRE_WEATHER TABLE START...")
+            await insertIntoLeisurecentreWeather(leisureCentre.id, relationLeisureWeather);
+        } catch (error) {
+        console.log(error)
+            return res.json({
+                status: 400,
+                messages: error.message
+            });
+        }
+    }
+    return res.json({
         status: 200,
-        message: 'leisure centre created Successfully',
+        message: 'leisure centre created Successfully'
     })
-
 }
 // update leisure centre 
 exports.updateLeisureCentre = async (req, res) => {
     let requestBody = req.body;
     let id = req.params.id
-
-    if (Object.entries(requestBody).length === 0 || !id)
+    if (!id)
         return res.json({
             status: 400,
-            message: "ERROR INVALID DATA TO UPDATE LEISURE CENTRE"
+            message: "INVALID ID"
+        })
+    //CHECK DATA OF REQUEST
+    let errorData = checkData(requestBody, UpdateLeisureCentreSchema);
+    if (errorData && errorData.message)
+        return res.json({
+            status: 400,
+            message: errorData.message
         });
 
-    //1- check all properties of leisure center to update
-    const {
-        error
-    } = UpdateLeisureCentreSchema.validate(requestBody);
-    if (error) {
-        console.log(error)
-        return res.status(400).json({
+    //CHECK IF LEISURE CENTRE TO UPDATE EXISTS
+    let leisureCentre = await getOneLeisureCentre(id);
+    console.log("leisureCentre ", leisureCentre)
+    if (!leisureCentre)
+        return res.json({
+            status: 404,
+            message: `NOT FOUND LEISURE CENTRE WITH ID ${id}`
+        });
+
+    //CHECK IF ADDRESS WAS CHANGED
+    try {
+        //GEOCODE ADDRESS, COMPARE OLD COORDINATES WITH NEW AND GET WEATHER DATA IF 
+        // DONT SAME
+        requestBody = await geocodeAndGetNewWeatherIfAddressWasChanged(requestBody, leisureCentre);
+    } catch (error) {
+        return res.json({
             status: 400,
             message: error.message
         });
     }
 
-    let leisureCentre = await getOneLeisureCentre(id);
-    if (!leisureCentre)
-        return res.json({
-            status: 404,
-            message: `NOT FOUND LEISURE CENTRE WITH ID ${id}`
-        })
-    //If update addresName,zipCode,cite or country
-    //Geocoding address to get new latitude and longitude
-    //Get weather for new address
-    const {
-        addressName,
-        zipCode,
-        cite,
-        country
-    } = requestBody;
-    if (addressName || zipCode || cite || country) {
+    //UPDATE RELATION INTO leisurecentre_categories TABLE
+    if (requestBody && requestBody.categories) {
         try {
-            requestBody = await geocodeAddressIfAddressChange(requestBody, leisureCentre);
-            //Get weather for 7 days
-            let weekWeatherJson = await getWeekWeather(requestBody.lat, requestBody.lon);
-            let relationLeisureWeather = await insertWeather(weekWeatherJson, id);
-            await insertIntoLeisurecentreWeather(id, relationLeisureWeather);
-
+            await insertIntoLeisurecentreCategories(id, requestBody.categories);
         } catch (error) {
             return res.json({
-                status:400,
-                message:error.message
+                status: 400,
+                message: error.message
             });
         }
     }
-    console.log("request body",requestBody)
-    if(requestBody && requestBody.categories){
-        const {categories = false} = requestBody.categories;
-        delete requestBody.categories;
-        let relationLeisureCategories = categories.map(cat => {
-            return [leisureCentreId, cat]
-        })
-        //5- Insert relation in leisurecentre_categories table
-        //and prepare data to insert into leisurecentre_categories table
-        try {
-            await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCategories);
-        } catch (error) {
-            return res.status(400).send(error);
-        }
-    }
+    //DELETE CATEGORIES FROM REQUEST_BODY FOR INSERT INTO
+    //leisurecentre TABLE
+    delete requestBody.categories;
 
-
-    //Update leisure centre 
+    //UPDATE leisurecentre
     try {
         await updateLeisureCentreService(requestBody, id);
-        res.json({
-            status: 200,
-            message: 'Leisure centre was updated Successfully',
-        })
     } catch (error) {
-        return res.status(400).send(error);
+        return res.json({
+            status: 400,
+            message: error.message
+        });
     }
 
+    return res.json({
+        status: 200,
+        message: 'Leisure centre was updated Successfully'
+    })
 }
 
 // delete leisure centre 
 exports.deleteLeisureCentre = async (req, res) => {
     const id = req.params.id;
     if (!id)
-        res.status(400).send('You must enter a valid ID in to url')
+        return res.json({
+            status: 200,
+            message: "INVALID ID"
+        })
+
     try {
         let result = await deleteLeisureCentreService(id);
-        res.json({
+        return res.json({
             status: result.affectedRows ? 200 : 404,
             message: result.affectedRows ? 'Leisure centre was deleted Successfully' : `Leisure centre not found`
         })
     } catch (error) {
-        res.json({
-            status:400,
-            message:error.message
+        return res.json({
+            status: 400,
+            message: error.message
         })
     }
 }

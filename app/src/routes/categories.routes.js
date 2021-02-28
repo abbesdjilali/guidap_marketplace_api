@@ -12,7 +12,7 @@ const {
 
 
 
-router.get('/',checkToken, getCategoriesList);
+router.get('/', getCategoriesList);
 router.post('/',checkToken, createCategory);
 router.put('/:id',checkToken, updateCategory);
 router.delete('/:id',checkToken, deleteCategory);

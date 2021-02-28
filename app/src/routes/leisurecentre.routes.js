@@ -14,7 +14,7 @@ const {
 
 // get all LeisureCentre
 
-router.get('/',checkToken, getLeisuresCentresList);
+router.get('/', getLeisuresCentresList);
 
 
 // create a new LeisureCentre

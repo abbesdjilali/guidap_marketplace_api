@@ -1,3 +1,6 @@
+const {
+    geocodeAddress
+} = require('../services/geocoding.services');
 //Import db connexion
 const cnx = require('../config/db.config');
 const {
@@ -9,8 +12,9 @@ const {
     insertIntoLeisurecentreWeatherQuery
 } = require('../queries/leisurecentre.queries.js');
 const {
-    geocodeAddress
-} = require('./geocoding.services');
+    getWeekWeather,
+    insertWeather
+} = require('../services/openweather.services');
 
 //Get one leisure centre by id
 const getOneLeisureCentre = id => new Promise((resolve, reject) => {
@@ -106,24 +110,29 @@ const getLeisureCentreIfExists = data => new Promise((resolve, reject) => {
 })
 exports.insertOrUpdateLeisureCentreIfExists = async (data) => {
     let result = await getLeisureCentreIfExists(data);
-    let id
+    let response = {
+        isInserted: false
+    };
     if (result && result.length) {
-        id = result[0].id;
-        await updateLeisureCentreService(data, id);
-        return id;
+        response.id = result[0].id;
+        await updateLeisureCentreService(data, response.id);
     } else {
-        id = await createLeisureCentre(data)
-        return id.insertId
+        let res = await createLeisureCentre(data);
+        response.id = res.insertId;
+        response.isInserted = true;
     }
+    return response;
 }
-exports.insertIntoLeisurecentreCategories = (leisureCentreId, data) => {
-    console.log(leisureCentreId, data)
-    cnx.query(insertIntoLeisurecentreCategoriesQuery, [leisureCentreId, data], (err, results) => {
-        if (err) throw new Error(err.message)
-        console.log(JSON.parse(JSON.stringify(results)));
+exports.insertIntoLeisurecentreCategories = (leisureCentreId, categories) => {
+    let relationLeisureCategories = categories.map(cat => {
+        return [leisureCentreId, cat]
+    })
+    cnx.query(insertIntoLeisurecentreCategoriesQuery, [leisureCentreId, relationLeisureCategories], (err, results) => {
+        if (err) return err
+        //console.log(JSON.parse(JSON.stringify(results)));
     })
 }
-exports.insertIntoLeisurecentreWeather = (leisureCentreId, data) => {
+const insertIntoLeisurecentreWeather = (leisureCentreId, data) => {
     console.log(leisureCentreId, data)
     cnx.query(insertIntoLeisurecentreWeatherQuery, [leisureCentreId, data], (err, results) => {
         if (err) throw new Error(err.message)
@@ -137,12 +146,72 @@ const geocodeAddressIfAddressChange = async (requestBody, leisureCentre) => {
     if (!requestBody.country) requestBody.country = leisureCentre.country;
     try {
         let coordinates = await geocodeAddress(requestBody);
-        requestBody['lon'] = coordinates[0];
-        requestBody['lat'] = coordinates[1];
-        return requestBody;
+        return {
+            lon: coordinates[0],
+            lat: coordinates[1]
+        }
+
     } catch (error) {
         return error
     }
+}
+exports.checkData = (requestBody, schema) => {
+    let error = {};
+    //check if request body is empty
+    if (Object.entries(requestBody).length === 0)
+        return error.message = "ERROR INVALID DATA TO UPDATE LEISURE CENTRE"
+
+    //1- check all properties of schema
+    const {err} = schema.validate(requestBody);
+    if (err)
+         error.message = err.message
+    return error;
+}
+
+
+//If update addresName,zipCode,cite or country
+//Geocoding address to get new latitude and longitude
+//compare old coordinates with new
+//if same dont fetch data from openweather else do
+exports.geocodeAndGetNewWeatherIfAddressWasChanged = async (requestBody, leisureCentre) => {
+    const {
+        addressName,
+        zipCode,
+        cite,
+        country
+    } = requestBody;
+    let newCoordinates,lat,lon;
+    if (addressName || zipCode || cite || country) {
+
+        //I DO THIS TO GET FULL ADDRESS TO GET LATITUDE AND LONGITUDE WITH PREDISION
+        if (!requestBody.addressName) requestBody.addressName = leisureCentre.addressName;
+        if (!requestBody.zipCode) requestBody.zipCode = leisureCentre.zipCode;
+        if (!requestBody.cite) requestBody.cite = leisureCentre.cite;
+        if (!requestBody.country) requestBody.country = leisureCentre.country;
+
+        try {
+            newCoordinates = await geocodeAddress(requestBody);
+            lon = newCoordinates[0];
+            lat = newCoordinates[1];
+        } catch (error) {
+            return error;
+        }
+    }
+
+    //Verify if address was really changed to compare old lat and lon with new lat and lon
+    if (leisureCentre.lat !== lat || leisureCentre.lon !== lon) {
+        try {
+            //Get weather for 7 days
+            let weekWeatherJson = await getWeekWeather(lat,lon);
+            let relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentre.id);
+            await insertIntoLeisurecentreWeather(leisureCentre.id, relationLeisureWeather);
+        } catch (error) {
+            return error;
+        }
+    }
+    requestBody.lat = lat;
+    requestBody.lon = lon;
+    return requestBody;
 }
 module.exports.createLeisureCentre = createLeisureCentre;
 module.exports.updateLeisureCentreService = updateLeisureCentreService;
@@ -150,3 +219,4 @@ module.exports.deleteLeisureCentreService = deleteLeisureCentreService;
 module.exports.getAllLeisuresCenters = getAllLeisuresCenters;
 module.exports.getOneLeisureCentre = getOneLeisureCentre;
 module.exports.geocodeAddressIfAddressChange = geocodeAddressIfAddressChange;
+module.exports.insertIntoLeisurecentreWeather = insertIntoLeisurecentreWeather;

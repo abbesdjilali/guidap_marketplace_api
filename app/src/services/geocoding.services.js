@@ -15,7 +15,6 @@ exports.geocodeAddress = async data => {
 }
 
 const formatAddress = leisureCentreReqData => {
-    console.log("leisureCentreReqData",leisureCentreReqData)
       const {
           addressName,
           zipCode,

@@ -9,7 +9,6 @@ const baseUrl = "https://api.openweathermap.org/data/2.5/";
 exports.getWeekWeather = async (lat, lon) => {
     try {
         const response = await fetch(`${baseUrl}onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&appid=${process.env.OPEN_WEATHER_API_KEY}`);
-        console.log("response weather api :", response.statusText)
         const result = await response.json();
         return result;
     } catch (error) {

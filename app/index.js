@@ -25,7 +25,8 @@ const insertCategories = () => {
             method: "POST",
             body: JSON.stringify(cat),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhbGlAZ3VpZGFwLmNvIiwiaWF0IjoxNjE0NTMwMDgwfQ.BBuRaCVQoMowr2VtLV8TTYer2Z2E0Szm1-XpqY6dePw'
             }
         })
     })
@@ -38,13 +39,14 @@ const insertLeisuresCentres = async () => {
             method: "POST",
             body: JSON.stringify(lc),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhbGlAZ3VpZGFwLmNvIiwiaWF0IjoxNjE0NTMwMDgwfQ.BBuRaCVQoMowr2VtLV8TTYer2Z2E0Szm1-XpqY6dePw'
             }
         })
     });
 }
-// insertLeisuresCentres()
-// insertCategories()
+//  insertLeisuresCentres()
+//  insertCategories()
 // USE
 app.use(bodyParser.urlencoded({
     extended: false
