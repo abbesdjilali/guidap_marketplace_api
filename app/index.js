@@ -3,20 +3,48 @@ const app = express();
 const bodyParser = require('body-parser');
 
 //ROUTES
-const apiRouter = require('./src/routes/leisurecentre.routes');
+const leisureCentreRouter = require('./src/routes/leisurecentre.routes');
+const categoriesRouter = require('./src/routes/categories.routes');
+const usersRouter = require('./src/routes/user.routes')
 
 // LOAD ENV VARIABLES
 require('dotenv').config();
 
 // SWAGGER
 const swaggerUi = require('swagger-ui-express');
-const swaggerJSdoc =require('./swagger.json');
-// const swaggerJSdoc = require('swagger-jsdoc');
+const swaggerJSdoc = require('./swagger.json');
 
-const {options} = require('./src/config/swagger.config');
+//TEST
+const fetch = require('node-fetch');
+const {data} = require("./data");
 
+//insert data to database 
+const insertCategories = () => {
+    data.categories.forEach(cat => {
+        fetch('http://localhost:3000/api/categories', {
+            method: "POST",
+            body: JSON.stringify(cat),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+    })
 
+}
 
+const insertLeisuresCentres = async () => {
+    data.leisureCentres.forEach(lc => {
+        fetch('http://localhost:3000/api/leisurecentre', {
+            method: "POST",
+            body: JSON.stringify(lc),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+    });
+}
+// insertLeisuresCentres()
+// insertCategories()
 // USE
 app.use(bodyParser.urlencoded({
     extended: false
@@ -29,27 +57,14 @@ app.get('/', (req, res) => {
          I let you consult and test my API <br>
          excellent day see you soon </h1> `);
 });
-app.use("/api/leisurecentre", apiRouter);
-app.use("/api/docs",swaggerUi.serve,swaggerUi.setup(swaggerJSdoc,options));
+app.use("/api/leisurecentre", leisureCentreRouter);
+app.use("/api/categories", categoriesRouter);
+app.use('/user', usersRouter);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJSdoc));
 
 
 
-//insert data to database 
-//  (async () => {
 
-//     const fetch = require('node-fetch');
-//     const {data} =  require("./data");
-//     for await (leisureCentre of data){
-//         await fetch('http://localhost:3000/api/leisurecentre',
-//         {
-//             method : "POST",
-//             body: JSON.stringify(leisureCentre),
-//             headers: {
-//                 "Content-Type": "application/json"
-//             }
-//         })
-//     };
-// })()  
 
 
 const port = process.env.PORT || 3000;

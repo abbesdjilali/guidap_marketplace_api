@@ -2,6 +2,10 @@
     "openapi":"3.0.2",
     "info": {
         "title":"Guidap marketplace api docs",
+        "contact": {
+            "email": "abbesdjilali@live.fr",
+            "name": "Djilali"
+        },
         "version":"1.0"
     },
     "servers": [
@@ -9,6 +13,143 @@
     ],
     "components": {
         "schemas": {
+            "UserRequestBody":  {
+                "type": "object",
+                "properties": {
+                    "userName": { "type": "string", "minLength": 3, "maxLength": 25 },
+                    "email": { "type": "string", "format": "email" },
+                    "password": { "type": "string", "minLength": 8, "maxLength": 255 },
+                    "passwordConfirmation": { "title": "Confirm password" }
+                },
+                "required": [ "userName","email", "password", "passwordConfirmation" ],
+                "additionalProperties": false
+            },
+            "User": {
+                "type":"object",
+                "properties": {
+                    "userName": {
+                        "type": "string",
+                        "example":"Djilali"
+                    },
+                    "email":{
+                        "type": "string",
+                        "example":"djilali@guidap.co"
+                    },
+                    "password":{
+                        "type": "string",
+                        "description": "Password to login"
+                    },
+                    "passwordConfirmation":{
+                        "type": "string",
+                        "description": "confirmation of the Password"
+                    }
+                }
+            },
+            "RegisterResponse":{
+                "properties": {
+                    "id":{
+                        "type": "integer",
+                        "example":25
+                    },
+                    "userName": {
+                        "type": "string",
+                        "example":"Djilali"
+                    },
+                    "email":{
+                        "type": "string",
+                        "example":"djilali@guidap.co"
+                    }
+                }
+            },
+            "NotFound":{
+                "properties": {
+                    "status":{
+                        "type": "integer",
+                        "example":404
+                    },
+                    "message":{
+                        "type": "string",
+                        "example":"NOT FOUND"
+                    }
+                }
+            },
+            "BadRequest":{
+                "properties": {
+                    "status":{
+                        "type": "integer",
+                        "example":400
+                    },
+                    "message":{
+                        "type": "string",
+                        "example":"NO DATA WITH THIS ID"
+                    }
+                }
+            },
+            "SuccesResponse":{
+                "type": "object",
+                "properties": {
+                    "status":{
+                        "type": "integer",
+                        "example":200
+                    },
+                    "message":{
+                        "type": "string",
+                        "example":"UPDATED Successfully"
+                    }
+                }
+            },
+            "LeisureCentreUpdate": {
+                "type": "object",
+                "properties": {
+                    "centreName": { "type": "string", "minLength": 3, "maxLength": 255 },
+                    "description": { "type": "string" },
+                    "website": { "type": "string" },
+                    "addressName": { "type": "string", "minLength": 6, "maxLength": 255,"example":"2 rue de la république " },
+                    "cite": { "type": "string", "minLength": 4, "maxLength": 25,"example":"Toulouse" },
+                    "zipCode": { "type": "number","example":31000},
+                    "country": { "type": "string" },
+                    "categories": { 
+                        "type": "array",
+                        "example":"[1,5,8]",
+                        "items": {
+                            "type": "integer",
+                            "example":1
+                        },
+                        "minItems": 1 
+                    }
+                },
+                "additionalProperties": false
+            },            
+            "LeisureCentreRequestBody": {
+                "type": "object",
+                "properties": {
+                    "centreName": { "type": "string", "minLength": 3, "maxLength": 255 },
+                    "description": { "type": "string" },
+                    "website": { "type": "string" },
+                    "addressName": { "type": "string", "minLength": 6, "maxLength": 255,"example":"2 rue de la république " },
+                    "cite": { "type": "string", "minLength": 4, "maxLength": 25,"example":"Toulouse" },
+                    "zipCode": { "type": "number","example":31000},
+                    "country": { "type": "string" },
+                    "categories": { 
+                        "type": "array",
+                        "example":"[1,5,8]",
+                        "items": {
+                            "type": "integer",
+                            "example":1
+                        },
+                        "minItems": 1 
+                    }
+                },
+                "required": [
+                    "centreName",
+                    "addressName",
+                    "cite",
+                    "zipCode",
+                    "country",
+                    "categories"
+                ],
+                "additionalProperties": false
+            },
             "Weather":{
                 "type": "object",
                 "properties": {
@@ -149,7 +290,7 @@
                 }
 
             },
-            "LeisureCentre": {
+            "LeisureCentreResponse": {
             "type":"object",
             "properties": {
                 "id": {
@@ -213,17 +354,287 @@
                 }
             }
         }
+        },
+        "securitySchemes": {
+            "jwtAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
         }
     },
     "paths": {
+        "/user/login": {
+            "post": {
+                "description": "Sign in guidap marketplace API",
+                "requestBody":{
+                    "content": {
+                        "application/json":{
+                            "schema":{
+                                "properties": {
+                                    "email":{"type": "string","format": "email","example":"djilali@guidap.co"},
+                                    "password":{"type": "string","minLength": 8, "maxLength": 255 }
+                                },
+                                "required": ["email","password"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                        "application/json":{
+                            "schema":{
+                                "additionalProperties": false,
+                                "properties":{
+                                    "status": {"type":"integer","example":200},
+                                    "user": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "integer","example":4},
+                                            "userName":{"type": "string","example":"djilal"},
+                                            "email":{"type": "string","format": "email","example":"djilali@guidap.co"}
+                                        }
+                                    },
+                                    "accessToken":{"type": "string","example":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhQGd1aWRhcC5jbyIsImlhdCI6MTYxNDUxODAxM30.jjpvFOl5D7-5k1lzOmBqFut6oDjeujFcpgZmo_167gY"}
+                                }
+                            }
+                        }
+                    }
+                    },
+                    "400":{
+                        "description": "Bad request",
+                        "content": {
+                            "application/json":{
+                              "schema":{
+                                  "$ref":"#/components/schemas/BadRequest"
+                              }  
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/register": {
+            "post": {
+                "description": "Register a new user",
+                "requestBody":{
+                    "content": {
+                        "application/json":{
+                            "schema":{
+                                "$ref":"#/components/schemas/User"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/RegisterResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "BAD REQUEST",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                   "$ref":"#/components/schemas/BadRequest"
+                                }                                
+                            }
+                        }
+                    }
+                }
+            }
+        },        
+        "/api/categories": {
+            "post": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"Create a new category",
+                "requestBody":{
+                    "content":{
+                        "application/json":{
+                            "schema":{
+                                "properties": {
+                                    "name":{
+                                    "type":"string",
+                                        "example":"kitesurf"
+                                    }
+                                }
+                            }
+
+                        }
+
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "properties": {
+                                        "id":{
+                                            "type": "integer",
+                                            "example":1
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    }
+                }
+            },
+            "get": {
+                "description": "GET ALL CATEGORIES",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "type": "array",
+                                    "items":{
+                                        "$ref":"#/components/schemas/Category"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories/{id}": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "description": "Id of category to update or delete",
+                    "schema":{
+                        "type": "integer",
+                        "example":"4"
+                    }
+                }
+            ],  
+            "put": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"UPDATE ONE CATEGORY",
+                "requestBody":{
+                    "content": {
+                        "application/json":{
+                            "schema":{
+                                "properties": {
+                                    "name":{
+                                        "type": "string",
+                                        "example":"paddle"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                   "$ref":"#/components/schemas/SuccesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                   "$ref":"#/components/schemas/BadRequest"
+                                }                                
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"DELETE ONE CATEGORY",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/SuccesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/BadRequest"
+                                }                                
+                            }
+                        }
+                    },
+                    "404":{
+                        "description": "Error to delete category",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/NotFound"
+                                }                                
+                            }
+                        }
+                    }
+                }
+            }
+            
+        },   
         "/api/leisurecentre": {
+            "post": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"CREATE A NEW LEISURE CENTRE",
+                "requestBody":{
+                    "content": {
+                        "application/json":{
+                            "schema":{
+                                "$ref":"#/components/schemas/LeisureCentreRequestBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
             "get": {
                 "description": "GET ALL LEISURE CENTRE",
                 "parameters": [
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Nombre de la page ",
+                        "description": "number fo page",
                         "required": false,
                         "schema":{
                             "type": "number",
@@ -233,7 +644,7 @@
                     {
                         "name": "limit",
                         "in": "query",
-                        "description": "Le nombre de base de loisirs que vous voulez par page  ",
+                        "description": "Number of leisure centre per page",
                         "required": false,
                         "schema":{
                             "type": "number",
@@ -243,11 +654,11 @@
                     {
                         "name": "categories",
                         "in": "query",
-                        "description": "Les noms d'activitées recherchés",
+                        "description": "Multiple categories name can be provided with comma separated strings",
                         "required": false,
                         "schema":{
                             "type": "string",
-                            "description": "nom de l'activité recherchée",
+                            "description": "Name of category",
                             "example":"kitesurf,paddle"
                         }
                     }
@@ -268,6 +679,96 @@
                     }
                 }
             }
-        }
+        },
+        "/api/leisurecentre/{id}": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "description": "Id of leisure centre to update",
+                    "schema":{
+                        "type": "integer",
+                        "example":"2"
+                    }
+                }
+            ],            
+            "delete": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"DELETE ONE LEISURE CENTRE",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                  "$ref":"#/components/schemas/SuccesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "Error to delete leisure centre",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                   "$ref":"#/components/schemas/BadRequest"
+                                }                                
+                            }
+                        }
+                    },
+                    "404":{
+                        "description": "Error to delete leisure centre",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/NotFound"
+                                }                                
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [{
+                    "jwtAuth":[]
+                }],
+                "description":"",
+                "requestBody":{
+                    "content": {
+                        "application/json":{
+                            "schema":{
+                                "$ref":"#/components/schemas/LeisureCentreUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/SuccesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "",
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"#/components/schemas/BadRequest"
+                                }                                
+                            }
+                        }
+                    }
+                }
+            }
+
+
     }
-}
+}}

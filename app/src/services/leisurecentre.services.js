@@ -31,11 +31,11 @@ const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolv
         if (err) return reject(err);
 
         //FORMAT RESPONSE AND PARSE WEATHER JSON
-        if(res[0].length)
+        if (res[0].length)
             res = formatResponse(res);
         resolve({
             leisuresCentres: res[0],
-            totalItems: res[1].length? res[1][0].nbItems : 0
+            totalItems: res[1].length ? res[1][0].nbItems : 0
         });
 
     })
@@ -57,15 +57,9 @@ const formatResponse = response => {
     return response;
 }
 
-// get leisures centers by category
-const getCategoriesList = () => {
-    cnx.query("SELECT * FROM categories", (err, res) => {
-        if (err)
-            result(null, err);
-        result(null, res);
 
-    })
-}
+
+
 
 // create new leisurecenter
 const createLeisureCentre = data => new Promise((resolve, reject) => {
@@ -154,6 +148,5 @@ module.exports.createLeisureCentre = createLeisureCentre;
 module.exports.updateLeisureCentreService = updateLeisureCentreService;
 module.exports.deleteLeisureCentreService = deleteLeisureCentreService;
 module.exports.getAllLeisuresCenters = getAllLeisuresCenters;
-module.exports.getCategoriesList = getCategoriesList;
 module.exports.getOneLeisureCentre = getOneLeisureCentre;
 module.exports.geocodeAddressIfAddressChange = geocodeAddressIfAddressChange;

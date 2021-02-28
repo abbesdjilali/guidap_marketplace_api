@@ -10,8 +10,26 @@ GET http://localhost:3000/user HTTP/1.1
 
 ### REGISTER NEW USER AND CREATE ACCESS_TOKEN WITH JWT 
 POST http://localhost:3000/user/register
+content-Type: application/json
 
+{
+    "userName" : "djilal",
+    "email": "djila@guidap.co",
+    "password" : "testtest",
+    "passwordConfirmation":"testtest"
+}
 
+###LOGIN ROUTES
+POST http://localhost:3000/user/login
+content-Type: application/json
+
+{
+    "email": "dj@guidap.co",
+    "password" : "testtest"
+}
+
+###
+{"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MTQ0OTI5ODF9.RZfPdTcfG2f8EmemvXPyvv5imGcE6ThEc0sTzRJWirM"}
 
 ### GET 20 ITEMS OF LEISURES CENTRES WITH DEFAULT LIMIT = 20  
 GET http://localhost:3000/api/leisurecentre HTTP/1.1
@@ -45,12 +63,12 @@ content-Type: application/json
     "cite" : "Toulouse",
     "zipCode" : 31200,
     "country" : "France",
-    "categories" : ["Paddle","kitesurf"]
+    "categories" : [1]
 }
 
 
 ### UPDATE LEISURE CENTRE
-PUT http://localhost:3000/api/leisurecentre/4
+PUT http://localhost:3000/api/leisurecentre/1
 content-Type: application/json
 
 {
@@ -66,5 +84,26 @@ content-Type: application/json
 DELETE http://localhost:3000/api/leisurecentre/2
 
 
-# lat: 43.613282,
-# docker.guidap_app |     lon: 1.476637,
+###CRUD CATEGORIES
+
+###GET ALL CATEGORIES
+GET http://localhost:3000/api/categories
+
+###CREATE ONE CATEGORY
+POST http://localhost:3000/api/categories
+content-Type: application/json
+
+{
+    "name" : "kitesurf"
+}
+
+### UPDATE
+PUT http://localhost:3000/api/categories/8
+content-Type: application/json
+
+{
+    "name" : "kitesurf"
+}
+
+### DELETE
+DELETE  http://localhost:3000/api/categories/6

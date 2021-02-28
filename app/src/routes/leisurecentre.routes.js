@@ -1,29 +1,32 @@
 const router = require('express').Router();
 const {
+    checkToken
+} = require('../middlewares/jwt.middleware')
+
+const {
     getLeisuresCentresList,
     getCategoriesList,
     createLeisureCentre,
     updateLeisureCentre,
-    deleteLeisureCentre
+    deleteLeisureCentre, 
+    createCategorie
 } = require('../controllers/leisurecentre.controller');
 
 // get all LeisureCentre
 
-router.get('/', getLeisuresCentresList);
+router.get('/',checkToken, getLeisuresCentresList);
 
-// get LeisureCentre by categorie
-router.get('/categories', getCategoriesList);
 
 // create a new LeisureCentre
-router.post('/', createLeisureCentre);
+router.post('/', checkToken, createLeisureCentre);
 
 // update one LeisureCentre
-router.put('/:id', updateLeisureCentre);
+router.put('/:id', checkToken, updateLeisureCentre);
 
 // update categories of LeisureCentre
-router.put('/categories/:id', updateLeisureCentre);
+router.put('/categories/:id', checkToken, updateLeisureCentre);
 
 // delete one LeisureCentre
-router.delete('/:id', deleteLeisureCentre);
+router.delete('/:id', checkToken, deleteLeisureCentre);
 
 module.exports = router;

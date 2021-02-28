@@ -1,7 +1,6 @@
 const Joi = require('joi');
 const j2s = require('joi-to-swagger');
-
-const LeisureCentreSchema = Joi.object({
+exports.LeisureCentreSchema = Joi.object({
     centreName: Joi.string()
         .min(3)
         .max(255)
@@ -12,10 +11,10 @@ const LeisureCentreSchema = Joi.object({
     cite: Joi.string().min(4).max(25).required(),
     zipCode: Joi.number().required(),
     country : Joi.string().required(),
-    categories: Joi.array().items(Joi.string()).min(1).required()
+    categories: Joi.array().items(Joi.number()).min(1).required()
 })
 
-const UpdateLeisureCentreSchema = Joi.object({
+exports.UpdateLeisureCentreSchema = Joi.object({
     centreName: Joi.string()
         .min(3)
         .max(255),
@@ -24,9 +23,26 @@ const UpdateLeisureCentreSchema = Joi.object({
     addressName: Joi.string().min(6).max(255),
     cite: Joi.string().min(4).max(25),
     zipCode: Joi.number(),
-    country: Joi.string()
+    country: Joi.string(),
+    categories: Joi.array().items(Joi.number()).min(1)
 })
-const {swagger,components} = j2s(LeisureCentreSchema);
-exports.LeisureCentreSwaggerSchema = swagger;
-module.exports.LeisureCentreSchema = LeisureCentreSchema;
-module.exports.UpdateLeisureCentreSchema = UpdateLeisureCentreSchema;
+
+exports.User = Joi.object({
+    userName: Joi.string()
+        .min(3)
+        .max(25)
+        .required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).max(255).required(),
+    passwordConfirmation: Joi.any().equal(Joi.ref('password'))
+        .required()
+        .label('passwordConfirmation')
+        .options({
+            messages: {
+                'any.only': '{{#label}} does not match'
+            }
+        })
+})
+//  const {swagger,components} = j2s(User);
+//  console.log(swagger)
+

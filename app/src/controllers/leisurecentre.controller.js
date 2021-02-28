@@ -1,6 +1,5 @@
 const {
     getAllLeisuresCenters,
-    getCategoriesList,
     createLeisureCentre,
     updateLeisureCentreService,
     deleteLeisureCentreService,
@@ -17,9 +16,7 @@ const {
 const {
     geocodeAddress
 } = require('../services/geocoding.services');
-const {
-    insertCategories
-} = require('../services/categorie.services');
+
 const {
     getWeekWeather,
     insertWeather
@@ -41,7 +38,7 @@ exports.getLeisuresCentresList = async (req, res) => {
             leisuresCentres,
             totalItems
         } = await getAllLeisuresCenters(limit, offset, categories);
-        
+
         const totalPages = Math.ceil(totalItems / limit);
         const itemsPerPage = limit > leisuresCentres.length ? leisuresCentres.length : limit;
 
@@ -71,15 +68,6 @@ exports.getLeisuresCentresList = async (req, res) => {
 }
 
 
-// get leisure centre  by categorie
-exports.getCategoriesList = (req, res) => {
-    getCategoriesList(req.body.categories_id, (err, categories) => {
-        if (err) res.send(err);
-        console.log(categories)
-        res.json(categories);
-    })
-}
-
 // create  leisure centre 
 exports.createLeisureCentre = async (req, res) => {
     let leisureCentreReqData = req.body;
@@ -92,7 +80,7 @@ exports.createLeisureCentre = async (req, res) => {
     } = LeisureCentreSchema.validate(leisureCentreReqData);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {
+    let {
         categories
     } = leisureCentreReqData;
     delete leisureCentreReqData.categories;
@@ -128,16 +116,6 @@ exports.createLeisureCentre = async (req, res) => {
     }
 
 
-    //4- INSERT RELATION TABLE (WEATHER AND CATEGORIES)
-    //Insert categories in categories table
-    let relationLeisureCat;
-    try {
-        relationLeisureCat = await insertCategories(categories, leisureCentreId);
-        console.log("relationLeisureCat ", relationLeisureCat)
-    } catch (error) {
-        return res.status(400).send("Error to insert into categories table ", error);
-    }
-
     //   Insert weather day in weather table   
     let relationLeisureWeather;
     try {
@@ -148,11 +126,13 @@ exports.createLeisureCentre = async (req, res) => {
         return res.status(400).send(error);
     }
 
-
+    let relationLeisureCategories = categories.map(cat => {
+        return [leisureCentreId, cat]
+    })
     //5- Insert relation in leisurecentre_categories table
     //and prepare data to insert into leisurecentre_categories table
     try {
-        await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCat);
+        await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCategories);
     } catch (error) {
         return res.status(400).send(error);
     }
@@ -173,23 +153,31 @@ exports.createLeisureCentre = async (req, res) => {
 exports.updateLeisureCentre = async (req, res) => {
     let requestBody = req.body;
     let id = req.params.id
-    console.log("requestBody :", requestBody, "id :", id)
 
-    if (!requestBody || !id)
-        return res.status(400).send("ERROR INVALID DATA TO UPDATE LEISURE CENTRE");
+    if (Object.entries(requestBody).length === 0 || !id)
+        return res.json({
+            status: 400,
+            message: "ERROR INVALID DATA TO UPDATE LEISURE CENTRE"
+        });
 
     //1- check all properties of leisure center to update
-    const { error } = UpdateLeisureCentreSchema.validate(requestBody);
-    if (error){
+    const {
+        error
+    } = UpdateLeisureCentreSchema.validate(requestBody);
+    if (error) {
         console.log(error)
-        return res.status(400).send(error);
+        return res.status(400).json({
+            status: 400,
+            message: error.message
+        });
     }
-
-    console.log("Request body after validate ", requestBody);
 
     let leisureCentre = await getOneLeisureCentre(id);
     if (!leisureCentre)
-        return res.status(400).send("NO LEISURE CENTRE WITH ID = " + id);
+        return res.json({
+            status: 404,
+            message: `NOT FOUND LEISURE CENTRE WITH ID ${id}`
+        })
     //If update addresName,zipCode,cite or country
     //Geocoding address to get new latitude and longitude
     //Get weather for new address
@@ -204,15 +192,32 @@ exports.updateLeisureCentre = async (req, res) => {
             requestBody = await geocodeAddressIfAddressChange(requestBody, leisureCentre);
             //Get weather for 7 days
             let weekWeatherJson = await getWeekWeather(requestBody.lat, requestBody.lon);
-            console.log("weekWeatherJson  : ", weekWeatherJson);
             let relationLeisureWeather = await insertWeather(weekWeatherJson, id);
-            console.log("relationLeisureWeather", relationLeisureWeather)
             await insertIntoLeisurecentreWeather(id, relationLeisureWeather);
+
         } catch (error) {
-            console.log(error)
+            return res.json({
+                status:400,
+                message:error.message
+            });
+        }
+    }
+    console.log("request body",requestBody)
+    if(requestBody && requestBody.categories){
+        const {categories = false} = requestBody.categories;
+        delete requestBody.categories;
+        let relationLeisureCategories = categories.map(cat => {
+            return [leisureCentreId, cat]
+        })
+        //5- Insert relation in leisurecentre_categories table
+        //and prepare data to insert into leisurecentre_categories table
+        try {
+            await insertIntoLeisurecentreCategories(leisureCentreId, relationLeisureCategories);
+        } catch (error) {
             return res.status(400).send(error);
         }
     }
+
 
     //Update leisure centre 
     try {
@@ -235,12 +240,13 @@ exports.deleteLeisureCentre = async (req, res) => {
     try {
         let result = await deleteLeisureCentreService(id);
         res.json({
-            status: result.affectedRows ? 200 : 400,
-            message: result.affectedRows ? 'Leisure centre was deleted Successfully' : `NO LEISURE CENTRE TO DELETE WITH ID = ${id}`
+            status: result.affectedRows ? 200 : 404,
+            message: result.affectedRows ? 'Leisure centre was deleted Successfully' : `Leisure centre not found`
         })
     } catch (error) {
-        res.status(400).send(error)
+        res.json({
+            status:400,
+            message:error.message
+        })
     }
 }
-
-
