@@ -19,7 +19,7 @@ services:
     networks:
       - backend
     ports:
-      - "3002:80"
+      - "3001:80"
     environment:
       - PMA_HOST=${PMA_HOST}
       - PMA_PORT=${PMA_PORT}
@@ -51,7 +51,7 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-    container_name: docker.guidap_app
+    container_name: guidap_app
 volumes:
   node_modules:
 networks:

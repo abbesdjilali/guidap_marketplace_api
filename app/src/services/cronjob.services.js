@@ -4,7 +4,8 @@ const {
 } = require("./leisurecentre.services")
 const {
     getWeekWeather,
-    insertWeather
+    insertWeather,
+    deleteOldWeatherData
 } = require('./openweather.services');
 
 
@@ -18,32 +19,22 @@ exports.updateWeatherDataEvery7Days = async (req, res) => {
         //FETCH WEATHER DATABASE
         let weatherData;
         try {
-            weatherData = await getWeekWeather();
+            weatherData = await getWeekWeather(leisurecentre.lat, leisurecentre.lon);
         } catch (error) {
             throw error;
         }
-
-        //INSERT NEW WEATHER DATA INTO weather TABLES
-        //AND GET ALL INSERTED ID 
-        let tabInsertedId;
+        //DELETE OLD WEATHER DATA FOR THIS LEISURE CENTRE
         try {
-            tabInsertedId = await insertWeather(weatherData);
+            await deleteOldWeatherData(leisurecentre.id);
         } catch (error) {
             throw error
         }
-
-        //GET INSERT NEW RELATION WITH LEISURE CENTRE AND WEATHER TABLES
-        //AND DELETE OLD RELATION
-        // try {
-        //     await insertIntoLeisurecentreWeather(leisurecentre.id,tabInsertedId);
-        // } catch (error) {
-        //     throw error
-        // } 
-
-        //DELETE OLD WEATHER DATA FROM weather TABLE
-        
-
-
+        //INSERT NEW WEATHER DATA INTO weather TABLES
+        try {
+            await insertWeather(weatherData,leisurecentre.id);
+        } catch (error) {
+            throw error
+        }
 
     }
 }

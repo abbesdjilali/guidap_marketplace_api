@@ -19,11 +19,15 @@ const swaggerJSdoc = require('./swagger.json');
 const {
     updateWeatherDataEvery7Days
 }=require("./src/services/cronjob.services");
-const {
-    inserDataInDatabase
-}=require("./src/fixture/insertFakeData");
-//updateWeatherDataEvery7Days()
-//inserDataInDatabase()
+
+
+//UPDATE WEATHER DATA EVERY 7 DAYS FOR ALL LEISURE CENTRE START
+const cron = require('node-cron');
+cron.schedule('0 0 * * 0', () => {
+    console.log('UPDATE WEATHER DATA FOR ALL LEISURE CENTRE START');
+    updateWeatherDataEvery7Days()
+});
+
 
 app.use(bodyParser.urlencoded({
     extended: false

@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const j2s = require('joi-to-swagger');
 exports.LeisureCentreSchema = Joi.object({
     centreName: Joi.string()
         .min(3)
@@ -43,6 +42,5 @@ exports.User = Joi.object({
             }
         })
 })
-//  const {swagger,components} = j2s(User);
-//  console.log(swagger)
+
 
