@@ -17,40 +17,49 @@ exports.getWeekWeather = async (lat, lon) => {
 }
 
 
-exports.insertWeather = async (weatherData, leisureCentreId) => {
+/**
+ * INSERT WETHER DATA 
+ * 
+ * @param {object} weatherData 
+ * @param {integer} leisureCentreId 
+ * @returns {array} tabLeisureWeatherId TAB OF RELATION WITH LEISURECENTRE AND WEATHER TABLE
+ */
+exports.insertWeather = async (weatherData, leisurecentre_id) => {
     let tabPromise = [];
-    console.log("weatherData :", weatherData)
     //Prepare sql queries to insert them in the db
     weatherData.daily.forEach(day => {
         let data = {
+            leisurecentre_id,
             weather: day,
             dt: day.dt
         }
         let p = insertOneWeather(data);
-        tabPromise.push(p);
+        tabPromise.push(p)
     })
-
-    //Insert all categories in db and get id of each category inserted
-    let weathersId = await Promise.all(tabPromise).then(results => {
+    await Promise.all(tabPromise).then(results => {
         return results
     }).catch(error => {
-        throw new Error(error);
+        throw error;
     });
-    //Prepare data to insert into leisurecentre_categories table 
-    //e.g : [leisurecentre_id,categories_id].
-    leisureWeatherData = weathersId.map(weather => {
-        return [leisureCentreId, weather[0].id];
-    })
-    return leisureWeatherData;
+
 }
 
 
 const insertOneWeather = data => new Promise((resolve, reject) => {
-    cnx.query(`INSERT INTO weather (weatherData,dt_timestamp) values('${JSON.stringify(data.weather)}',${parseInt(data.dt)});SELECT id FROM weather WHERE dt_timestamp = "${data.dt}";`, (error, results) => {
+    cnx.query(`INSERT INTO weather (leisurecentre_id,weatherData,dt_timestamp) values(${data.leisurecentre_id},'${JSON.stringify(data.weather)}',${parseInt(data.dt)});`, (error, results) => {
         if (error) {
             reject(error);
         } else {
-            resolve(JSON.parse(JSON.stringify(results[1])));
+            resolve(results);
         }
     })
 });
+exports.deleteOldWeatherData = leisurecentre_id => new Promise((resolve, reject) => {
+    cnx.query(`DELETE FROM weather WHERE leisurecentre_id = ${leisurecentre_id};`, (error, results) => {
+        if (error) {
+            reject(error);
+        } else {
+            resolve(results);
+        }
+    })
+})

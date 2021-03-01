@@ -24,10 +24,8 @@ const getAllLeisureCentresQuery = (limit, offset, categories) => {
             ON lc.leisurecentre_id = l.id
             JOIN categories c
             ON lc.categories_id = c.id ${andFiltredByCategory}
-            JOIN leisurecentre_weather lw
-            ON lw.leisurecentre_id = l.id
             JOIN weather w
-            ON lw.weather_id = w.id AND w.dt_timestamp BETWEEN ${start} AND ${end}
+            ON l.id = w.leisurecentre_id AND w.dt_timestamp BETWEEN ${start} AND ${end}
             GROUP BY l.id LIMIT ${limit} OFFSET ${offset};
             SELECT count(*) nbItems
             FROM leisurecentre l 

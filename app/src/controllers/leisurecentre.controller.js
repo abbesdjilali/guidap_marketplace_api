@@ -9,7 +9,8 @@ const {
     geocodeAddressIfAddressChange,
     insertIntoLeisurecentreWeather,
     geocodeAndGetNewWeatherIfAddressWasChanged,
-    checkData
+    checkData,
+    getLeisureCentreIfExists
 } = require('../services/leisurecentre.services');
 const {
     LeisureCentreSchema,
@@ -82,26 +83,40 @@ exports.createLeisureCentre = async (req, res) => {
 
     //2- Geocoding address to get latitude and longitude
     console.log("GEOCODING ADDRESS START...")
+
+    let coordinates = await geocodeAddress(leisureCentreReqData);
+    if (!coordinates)
+        return res.status(400).send("Error to geocoding address");
+
+    leisureCentreReqData['lon'] = coordinates[0];
+    leisureCentreReqData['lat'] = coordinates[1];
+
+    // CHECK IF EXISTS LEISURECENTRE WITH SAME latitude AND longitude
+    // Ma logique : on ne peut pas avoir deux bases de loisirs différentes avec les mêmes coordonnées GPS
     try {
-        let coordinates = await geocodeAddress(leisureCentreReqData);
-        leisureCentreReqData['lon'] = coordinates[0];
-        leisureCentreReqData['lat'] = coordinates[1];
+        let leisurecentreExists = await getLeisureCentreIfExists(leisureCentreReqData.lat, leisureCentreReqData.lon)
+        console.log(leisurecentreExists)
+        if (leisurecentreExists && leisurecentreExists.length)
+            return res.json({
+                status: 400,
+                message: `LEISURE CENTRE EXISTS WITH SAME LATITUDE AND LONGITUDE!, leisurecentre_id = ${leisurecentreExists[0].id}`
+            })
     } catch (error) {
         console.log(error)
-        return res.status(400).send("Error to geocoding address :", error);
+        return res.json({
+            status: 400,
+            messages: error.message
+        })
     }
 
-    //3- IF LEISURECENTRE EXISTS UPDATE ELSE INSERT INTO 
-    // SI une base de loisirs exsiste avec la même latitude et longitude
-    // en l'insérant on duplique la data dans la base de données
-    // Ma logique : on ne peut pas avoir deux bases de loisirs différentes avec les mêmes coordonnées GPS
+
     const categories = leisureCentreReqData.categories;
     delete leisureCentreReqData.categories;
-    console.log("categories",categories);
-    let leisureCentre;
+
+    //INSERT INTO leisurecentre TABLE
+    let leisureCentreId;
     try {
-        //IF LEISURECENTRE EXISTS UPDATE ELSE INSERT INTO 
-        leisureCentre = await insertOrUpdateLeisureCentreIfExists(leisureCentreReqData);
+        leisureCentreId = await createLeisureCentre(leisureCentreReqData);
     } catch (error) {
         console.log(error)
         return res.json({
@@ -113,7 +128,7 @@ exports.createLeisureCentre = async (req, res) => {
     //INSERT INTO leisurecentre_categories TABLE
     console.log("INSERT INTO leisurecentre_categories TABLE START...")
     try {
-        await insertIntoLeisurecentreCategories(leisureCentre.id, categories);
+        await insertIntoLeisurecentreCategories(leisureCentreId, categories);
     } catch (error) {
         console.log(error)
         return res.json({
@@ -122,36 +137,38 @@ exports.createLeisureCentre = async (req, res) => {
         });
     }
 
-    //IF LEISURE CENTRE WAS INSERTED
-    //GET WEATHER DATA FOR 7 DAYS
-    if (leisureCentre.isInserted) {
-        console.log("GET WEATHER START ...")
-        let weekWeatherJson;
-        try {
-            weekWeatherJson = await getWeekWeather(leisureCentreReqData.lat, leisureCentreReqData.lon);
-        } catch (error) {
-            console.log(error)
-            return res.json({
-                status: 400,
-                messages: error.message
-            });
-        }
 
-        try {
-            //INSERT INTO weather TABLE WEATHER DATA JSON FOR EACH DAY (7 DAYS)
-            console.log("INSERT INTO WEATHER TABLE START...")
-            let relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentre.id);
-            //INSERT RELATION INTO leisurecentre_weather TABLE
-            console.log("INSERT INTO LEISURECENTRE_WEATHER TABLE START...")
-            await insertIntoLeisurecentreWeather(leisureCentre.id, relationLeisureWeather);
-        } catch (error) {
-        console.log(error)
+    //GET WEATHER DATA FOR 7 DAYS
+    let weekWeatherJson;
+    try {
+        console.log("GET WEATHER START ...")
+        weekWeatherJson = await getWeekWeather(leisureCentreReqData.lat, leisureCentreReqData.lon);
+        if (Object.entries(weekWeatherJson).length === 0 || !weekWeatherJson.daily.length)
             return res.json({
                 status: 400,
-                messages: error.message
+                messages: "ERRPR TO GET WEATHER DATA FROM OPEN WEATHER API"
             });
-        }
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            status: 400,
+            messages: error.message
+        });
     }
+
+    //INSERT INTO weather TABLE WEATHER DATA JSON FOR EACH DAY (7 DAYS)
+    try {
+        console.log("INSERT INTO WEATHER TABLE START...")
+        console.log(weekWeatherJson)
+        await insertWeather(weekWeatherJson, leisureCentreId);
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            status: 400,
+            messages: error.message
+        });
+    }
+    console.log("leisure centre created Successfully")
     return res.json({
         status: 200,
         message: 'leisure centre created Successfully'
@@ -185,8 +202,7 @@ exports.updateLeisureCentre = async (req, res) => {
 
     //CHECK IF ADDRESS WAS CHANGED
     try {
-        //GEOCODE ADDRESS, COMPARE OLD COORDINATES WITH NEW AND GET WEATHER DATA IF 
-        // DONT SAME
+        //GEOCODE ADDRESS, COMPARE OLD COORDINATES WITH NEW AND GET WEATHER DATA IF DONT SAME
         requestBody = await geocodeAndGetNewWeatherIfAddressWasChanged(requestBody, leisureCentre);
     } catch (error) {
         return res.json({

@@ -1,6 +1,6 @@
 const {
     geocodeAddress
-} = require('../services/geocoding.services');
+} = require('./geocoding.services');
 //Import db connexion
 const cnx = require('../config/db.config');
 const {
@@ -13,8 +13,9 @@ const {
 } = require('../queries/leisurecentre.queries.js');
 const {
     getWeekWeather,
-    insertWeather
-} = require('../services/openweather.services');
+    insertWeather,
+    deleteOldWeatherData
+} = require('./openweather.services');
 
 //Get one leisure centre by id
 const getOneLeisureCentre = id => new Promise((resolve, reject) => {
@@ -28,7 +29,13 @@ const getOneLeisureCentre = id => new Promise((resolve, reject) => {
     })
 })
 
-
+exports.getLeisuresCentres = ()=> new Promise((resolve, reject) => {
+    cnx.query("SELECT * FROM leisurecentre",(error, results)=>{
+        if(error)
+            return reject(error);
+        resolve(results);
+    })
+})
 // get all leisurecenters
 const getAllLeisuresCenters = (limit, offset, categories) => new Promise((resolve, reject) => {
     cnx.query(getAllLeisureCentresQuery(limit, offset, categories), (err, res) => {
@@ -68,12 +75,13 @@ const formatResponse = response => {
 // create new leisurecenter
 const createLeisureCentre = data => new Promise((resolve, reject) => {
     cnx.query(insertLeisureCentreQuery, data, (error, results) => {
-        if (error) {
+        if (error)
             reject(error);
-        } else {
-            resolve(JSON.parse(JSON.stringify(results)));
-        }
-    });
+        
+        if(results.insertId)
+            resolve(results.insertId);
+        })
+        
 })
 
 // update leisurecentre
@@ -98,8 +106,8 @@ const deleteLeisureCentreService = id => new Promise((resolve, reject) => {
         }
     });
 })
-const getLeisureCentreIfExists = data => new Promise((resolve, reject) => {
-    cnx.query(leisureCentreExsistQuery, [data.lat, data.lon], (error, results) => {
+exports.getLeisureCentreIfExists = (lat,lon) => new Promise((resolve, reject) => {
+    cnx.query(leisureCentreExsistQuery, [lat,lon], (error, results) => {
         if (error) {
             reject(error);
         } else {
@@ -132,9 +140,9 @@ exports.insertIntoLeisurecentreCategories = (leisureCentreId, categories) => {
         //console.log(JSON.parse(JSON.stringify(results)));
     })
 }
-const insertIntoLeisurecentreWeather = (leisureCentreId, data) => {
-    console.log(leisureCentreId, data)
-    cnx.query(insertIntoLeisurecentreWeatherQuery, [leisureCentreId, data], (err, results) => {
+const insertIntoLeisurecentreWeather = (leisureCentreId, tabWeatherId) => {
+    console.log(leisureCentreId, tabWeatherId)
+    cnx.query(insertIntoLeisurecentreWeatherQuery, [leisureCentreId, tabWeatherId], (err, results) => {
         if (err) throw new Error(err.message)
         console.log(JSON.parse(JSON.stringify(results)));
     })
@@ -199,12 +207,16 @@ exports.geocodeAndGetNewWeatherIfAddressWasChanged = async (requestBody, leisure
     }
 
     //Verify if address was really changed to compare old lat and lon with new lat and lon
-    if (leisureCentre.lat !== lat || leisureCentre.lon !== lon) {
+    if (leisureCentre.lat != lat || leisureCentre.lon != lon) {
+        console.log("leisureCentre lat",leisureCentre.lat,lat,"longitude",leisureCentre.lon,lon)
         try {
             //Get weather for 7 days
             let weekWeatherJson = await getWeekWeather(lat,lon);
-            let relationLeisureWeather = await insertWeather(weekWeatherJson, leisureCentre.id);
-            await insertIntoLeisurecentreWeather(leisureCentre.id, relationLeisureWeather);
+            //DELETE OLD WEATHER DATA OF THIS LEISURE CENTRE
+            await deleteOldWeatherData(leisureCentre.id);
+            //INSERT NEW WEATHER DATA
+            await insertWeather(weekWeatherJson, leisureCentre.id);
+    
         } catch (error) {
             return error;
         }

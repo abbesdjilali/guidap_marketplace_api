@@ -11,6 +11,8 @@ exports.geocodeAddress = async data => {
          throw new Error(message);
      }
     const result = await response.json();
+    if(!Object.entries(result).length && result.features && result.features.length)
+        return
     return result.features[0].center;
 }
 

@@ -46,6 +46,7 @@ exports.createUser = async (req, res) => {
     // console.log("user", user);
     user.password = await hashPassword(user.password);
     try {
+        delete user.passwordConfirmation;
         user.id = await saveUser(user);
     } catch (error) {
         return res.json({

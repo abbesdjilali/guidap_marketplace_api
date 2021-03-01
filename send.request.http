@@ -24,7 +24,7 @@ POST http://localhost:3000/user/login
 content-Type: application/json
 
 {
-    "email": "djilali@guidap.co",
+    "email": "djila@guidap.co",
     "password" : "testtest"
 }
 
@@ -60,31 +60,32 @@ content-Type: application/json
     "centreName" : "new Rue de Metz",
     "description" : "La base de loisirs de Bruguières est le poumon vert de la ville. Jeux pour enfants sur place. Des tables avec bancs sont mis a disposition pour un pique-nique. un port miniature les ti-pirates, balade en bateaux électriques sur le lac de la base de loisirs, est en activité sur le site d'avril à septembre, vente de glaces, paninis et boissons a emporter durant cette période également (plus d'infos sur www.lesti-pirates.com)",
     "website" : "Rue de Metz Rue de Metz",
-    "addressName" : "Rue de Metz",
+    "addressName" : "Rue louis plana",
     "cite" : "Toulouse",
-    "zipCode" : 3100,
+    "zipCode" : 31500,
     "country" : "France",
     "categories" : [4,9]
 }
 
 
 ### UPDATE LEISURE CENTRE
-PUT http://localhost:3000/api/leisurecentre/8
+PUT http://localhost:3000/api/leisurecentre/2
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhbGlAZ3VpZGFwLmNvIiwiaWF0IjoxNjE0NTMwMDgwfQ.BBuRaCVQoMowr2VtLV8TTYer2Z2E0Szm1-XpqY6dePw
 content-Type: application/json
 
 {
-    "centreName" : "SESQUIERES",
+    "centreName" : "roseraie",
     "description" : "À 15 min de la place du Capitole, la base de sports et de loisirs de Sesquières est un espace de 62 hectares entièrement",
     "website" : "lac-sesquieres.fr",
-    "addressName":"Allée des Foulques",
-    "zipCode":31200,
+    "addressName":"Rue louis plana",
+    "zipCode":31500,
     "cite":"Toulouse"
 }
 
 ### DELETE LEISURE CENTRE AND RELATION IN LEISURECENTRE_CATEGORIES TABLE
-DELETE http://localhost:3000/api/leisurecentre/2
-
+DELETE http://localhost:3000/api/leisurecentre/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhbGlAZ3VpZGFwLmNvIiwiaWF0IjoxNjE0NTMwMDgwfQ.BBuRaCVQoMowr2VtLV8TTYer2Z2E0Szm1-XpqY6dePw
+content-Type: application/json
 
 ###CRUD CATEGORIES
 
@@ -93,6 +94,7 @@ GET http://localhost:3000/api/categories
 
 ###CREATE ONE CATEGORY
 POST http://localhost:3000/api/categories
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlck5hbWUiOiJkamlsYWwiLCJlbWFpbCI6ImRqaWxhbGlAZ3VpZGFwLmNvIiwiaWF0IjoxNjE0NTMwMDgwfQ.BBuRaCVQoMowr2VtLV8TTYer2Z2E0Szm1-XpqY6dePw
 content-Type: application/json
 
 {
