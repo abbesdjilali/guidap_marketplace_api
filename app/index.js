@@ -45,9 +45,7 @@ app.use("/api/categories", categoriesRouter);
 app.use('/user', usersRouter);
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerJSdoc));
 
-
-
-
+console.log(process.env.MYSQL_HOST)
 
 
 const port = process.env.PORT || 3000;
